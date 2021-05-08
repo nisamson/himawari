@@ -5,13 +5,9 @@ use rustls::{NoClientAuth, ServerConfig};
 use std::io::Cursor;
 use rustls::internal::pemfile::{certs, rsa_private_keys};
 use actix_web::middleware::Logger;
+use actix_files::Files;
 
 #[macro_use] extern crate tracing;
-
-#[get("/{id}/{name}/index.html")]
-async fn index(web::Path((id, name)): web::Path<(u32, String)>) -> impl Responder {
-    format!("Hello {}! id:{}", name, id)
-}
 
 #[tokio::main]
 async fn main() {
@@ -59,7 +55,7 @@ async fn main() {
                     .secure(true)
             ))
             .wrap(Logger::default())
-            .service(index)
+            .service(Files::new("/", std::env::var("STATIC_ASSETS").unwrap()).prefer_utf8(true))
     })
         .bind_rustls(&addr, ssl_conf)
         .unwrap()
