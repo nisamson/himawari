@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres
+    volumes:
+      - hima-data:/var/lib/postgresql/data
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_USER=${DB_USER}
+    restart: always
+
+volumes:
+  hima-data:
+    driver: local

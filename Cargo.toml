@@ -3,5 +3,5 @@
 members = [
     "himawari-model",
     "himawari-client",
-    "himawari-server",
+    "himawari",
 ]
