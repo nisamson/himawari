@@ -1,13 +1,11 @@
 use actix_web::{get, web, App, HttpServer, Responder};
 use rand::Rng;
 use actix_identity::{IdentityService, CookieIdentityPolicy};
-use rustls::{NoClientAuth, ServerConfig};
-use std::io::Cursor;
-use rustls::internal::pemfile::{certs, rsa_private_keys};
 use actix_web::middleware::Logger;
 use actix_files::Files;
 
-#[macro_use] extern crate tracing;
+#[macro_use]
+extern crate tracing;
 
 #[tokio::main]
 async fn main() {
@@ -18,26 +16,15 @@ async fn main() {
 
     tracing_subscriber::fmt::init();
 
-    let mut ssl_conf = ServerConfig::new(NoClientAuth::new());
-
-
     let local = tokio::task::LocalSet::new();
     let sys = actix_web::rt::System::run_in_tokio("himawari", &local);
-    let certf = tokio::fs::read(std::env::var("SSL_CERT").unwrap()).await.unwrap();
-    let keyf = tokio::fs::read(std::env::var("SSL_KEY").unwrap()).await.unwrap();
-
-    let mut curs = Cursor::new(&certf);
-    let certs = certs(&mut curs).unwrap();
-    let mut curs = Cursor::new(&keyf);
-    let keys = rsa_private_keys(&mut curs).unwrap();
-    ssl_conf.set_single_cert(certs, keys.into_iter().next().unwrap()).unwrap();
 
     let port = std::env::var("PORT").unwrap().parse::<u16>().unwrap();
     let addr = format!("127.0.0.1:{}", port);
 
     // All sessions are invalidated at startup
     let session_key = rand::thread_rng().gen::<[u8; 32]>();
-    info!("Starting server on https://{}", &addr);
+    info!("Starting server on http://{}", &addr);
 
     tokio::task::spawn(async {
         debug!("Setting up CTRL-C handler.");
@@ -52,12 +39,12 @@ async fn main() {
                 CookieIdentityPolicy::new(&session_key)
                     .name("himawari-auth")
                     .domain(std::env::var("DOMAIN").unwrap())
-                    .secure(true)
+                    .secure(false)
             ))
             .wrap(Logger::default())
             .service(Files::new("/", std::env::var("STATIC_ASSETS").unwrap()).prefer_utf8(true))
     })
-        .bind_rustls(&addr, ssl_conf)
+        .bind(&addr)
         .unwrap()
         .run()
         .await
