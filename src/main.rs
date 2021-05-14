@@ -1,11 +1,22 @@
-use actix_web::{get, web, App, HttpServer, Responder};
+
+
+use actix_web::{App, HttpServer};
 use rand::Rng;
 use actix_identity::{IdentityService, CookieIdentityPolicy};
 use actix_web::middleware::Logger;
-use actix_files::Files;
+use actix_files::{Files, NamedFile};
+use std::path::PathBuf;
+use actix_web::dev::{ServiceRequest, ServiceResponse};
+use actix_web::cookie::SameSite;
+
+
+#[macro_use] extern crate born;
 
 #[macro_use]
 extern crate tracing;
+
+mod model;
+mod frontend;
 
 #[tokio::main]
 async fn main() {
@@ -32,17 +43,17 @@ async fn main() {
         warn!("Shutting down.");
         std::process::exit(0);
     });
-
     HttpServer::new(move || {
         App::new()
             .wrap(IdentityService::new(
                 CookieIdentityPolicy::new(&session_key)
-                    .name("himawari-auth")
+                    .name("HIMAWARI-AUTH")
                     .domain(std::env::var("DOMAIN").unwrap())
+                    .same_site(SameSite::Strict)
                     .secure(false)
             ))
             .wrap(Logger::default())
-            .service(Files::new("/", std::env::var("STATIC_ASSETS").unwrap()).prefer_utf8(true))
+            .service(frontend::static_assets)
     })
         .bind(&addr)
         .unwrap()

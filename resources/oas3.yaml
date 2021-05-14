@@ -1,0 +1,96 @@
+openapi: 3.0.0
+info:
+  title: Himawari API
+  description: API for interacting with the Himawari Contest Backend API
+  version: 0.1.0
+paths:
+  /users:
+    post:
+      summary: Creates a new user with the given information.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+      security: []
+      responses:
+        '201':
+          description: Created
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+        '409':
+          description: A user already exists with that username or email
+        default:
+          description: Unspecified error
+  /login:
+    post:
+      summary: Logs in an existing user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginUser'
+      security: []
+      responses:
+        '200':
+          description: Successfuly authenticated. Session ID will be returned in a cookie.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+        '400':
+          description: User or password was incorrect.
+    delete:
+      summary: Logs out an authenticated user
+      security:
+        - cookieAuth: []
+      description: A logged in user will be logged out (their session will be invalidated).
+      responses:
+        '200':
+          description: User was successfully logged out.
+          headers:
+            Set-Cookie:
+              description: Cookie will be expired.
+              schema:
+                type: string
+        '401':
+          description: User was not logged in or cookie was invalid.
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: HIMAWARI-AUTH
+
+  schemas:
+    UserRef:
+      type: object
+      properties:
+        username:
+          type: string
+      required:
+        - username
+    LoginUser:
+      allOf:
+        - $ref: '#/components/schemas/UserRef'
+        - type: object
+          required:
+            - password
+          properties:
+            password:
+              type: string
+              format: password
+              minLength: 4
+              maxLength: 128
+    CreateUser:
+      allOf:
+        - $ref: '#/components/schemas/LoginUser'
+        - type: object
+          properties:
+            email:
+              type: string
+              format: email
