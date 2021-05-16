@@ -2,8 +2,12 @@ limit_req_zone $binary_remote_addr zone=login:10m rate=10r/m;
 
 
 # This will always be on the same node; needs to be upgraded to SSL if this changes.
-upstream himawari {
+upstream himawari_api {
     server ${HIMAWARI_API};
+}
+
+upstream himawari {
+    server ${HIMAWARI_FRONTEND};
 }
 
 server {
@@ -48,7 +52,7 @@ server {
         limit_req zone=login;
         limit_req_log_level warn;
         limit_req_status 429;
-        proxy_pass http://himawari;
+        proxy_pass http://himawari_api;
     }
 
 }

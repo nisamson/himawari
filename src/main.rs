@@ -17,7 +17,6 @@ use std::time::Duration;
 extern crate tracing;
 
 mod model;
-mod frontend;
 mod db;
 mod api;
 
@@ -68,14 +67,14 @@ async fn async_main() {
                     .same_site(SameSite::Strict)
                     .max_age_secs(chrono::Duration::days(7).num_seconds())
                     .http_only(true)
-                    .secure(!cfg!(debug_assertions))
+                    .secure(true)
             ))
             .wrap(Logger::default())
             .service(web::scope("/api")
                 .service(api::login::login)
                 .service(api::login::logout)
                 .service(api::login::register))
-            .service(frontend::static_assets)
+            // .service(frontend::static_assets)
     })
         .bind(&addr)
         .unwrap()
