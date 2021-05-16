@@ -3,14 +3,30 @@ version: "3.8"
 services:
   db:
     image: postgres
+    container_name: himawari-db
     volumes:
       - hima-data:/var/lib/postgresql/data
     ports:
-      - ${DB_PORT}:${DB_PORT}
+      - ${DB_PORT}:5432
     environment:
       - POSTGRES_PASSWORD=${DB_PASS}
       - POSTGRES_USER=${DB_USER}
     restart: always
+  nginx:
+    image: nginx:latest
+    container_name: himawari-nginx
+    volumes:
+      - ./nginx-templates:/etc/nginx/templates
+      - ${CERT}:/etc/ssl/certs/server.crt
+      - ${KEY}:/etc/ssl/certs/server.key
+    ports:
+      - 443:443
+    environment:
+      - HIMAWARI_API=host.docker.internal:${PORT}
+      - DOMAIN=${DOMAIN}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
 
 volumes:
   hima-data:

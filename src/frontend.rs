@@ -7,7 +7,8 @@ use include_dir::Dir;
 static STATIC_DIR: Dir = include_dir::include_dir!("frontend/build/");
 
 #[get("/{filename:.*}")]
-pub async fn static_assets(web::Path(filename): web::Path<String>) -> impl Responder {
+pub async fn static_assets(filename: web::Path<String>) -> impl Responder {
+    let filename = filename.into_inner();
     let file = STATIC_DIR.get_file(&filename);
 
     let (contents, mime) = if let Some(contents) = file {

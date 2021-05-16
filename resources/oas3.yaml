@@ -4,7 +4,7 @@ info:
   description: API for interacting with the Himawari Contest Backend API
   version: 0.1.0
 paths:
-  /users:
+  /api/register:
     post:
       summary: Creates a new user with the given information.
       requestBody:
@@ -25,7 +25,7 @@ paths:
           description: A user already exists with that username or email
         default:
           description: Unspecified error
-  /login:
+  /api/login:
     post:
       summary: Logs in an existing user
       requestBody:
@@ -46,8 +46,6 @@ paths:
           description: User or password was incorrect.
     delete:
       summary: Logs out an authenticated user
-      security:
-        - cookieAuth: []
       description: A logged in user will be logged out (their session will be invalidated).
       responses:
         '200':
@@ -57,8 +55,6 @@ paths:
               description: Cookie will be expired.
               schema:
                 type: string
-        '401':
-          description: User was not logged in or cookie was invalid.
 components:
   securitySchemes:
     cookieAuth:
@@ -94,3 +90,5 @@ components:
             email:
               type: string
               format: email
+          required:
+            - email
