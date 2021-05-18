@@ -11,6 +11,15 @@ upstream himawari {
 }
 
 server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    server_name _;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
     listen 443 ssl;
     listen [::]:443 ssl;
 
@@ -49,7 +58,7 @@ server {
     }
 
     location ~ /api/((login)|(register))$ {
-        limit_req zone=login;
+        limit_req zone=login burst=10 delay=10;
         limit_req_log_level warn;
         limit_req_status 429;
         proxy_pass http://himawari_api;

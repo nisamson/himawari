@@ -23,15 +23,21 @@ export class UserRef {
     }
 }
 
-export class LoginUser extends UserRef {
-    password: string;
+export class BadLogin extends SimpleMessageError {
+    constructor() {
+        super("Invalid login. Please check your username and password.");
+    }
+}
 
-    constructor(username: string, password: string) {
+export class LoginUser extends UserRef {
+    password: Password;
+
+    constructor(username: string, password: Password) {
         super(username);
         this.password = password;
     }
 
-    async logIn(): Promise<Result<UserRef, HttpError>> {
+    async logIn(): Promise<Result<UserRef, HttpError | BadLogin>> {
         let resp = await fetch("/api/login", {
             method: "POST",
             body: JSON.stringify(this),
@@ -43,8 +49,10 @@ export class LoginUser extends UserRef {
 
         if (resp.ok) {
             return ok(new UserRef(this.username));
-        } else {
+        } else if (![StatusCodes.UNAUTHORIZED, StatusCodes.BAD_REQUEST].includes(resp.status)) {
             return err(new HttpError(resp.status));
+        } else {
+            return err(new BadLogin())
         }
     }
 }
@@ -59,7 +67,7 @@ export class UserAlreadyExists extends SimpleMessageError {
 export class CreateUser extends LoginUser {
     email: string;
 
-    constructor(username: string, password: string, email: string) {
+    constructor(username: string, password: Password, email: string) {
         super(username, password);
         this.email = email;
     }
@@ -82,6 +90,37 @@ export class CreateUser extends LoginUser {
             }
             return new Err(new HttpError(resp.status));
         }
+    }
+}
+
+export class InvalidPassword extends SimpleMessageError {
+    constructor() {
+        super("Passwords must be between 4 and 128 bytes long, inclusive.");
+    }
+}
+
+export class Password {
+    readonly value: string;
+
+    private constructor(value: string) {
+        this.value = value;
+    }
+
+    private isValid(): boolean {
+        return this.value.length >= 4 && this.value.length <= 128;
+    }
+
+    static new(value: string): Result<Password, InvalidPassword> {
+        let out = new Password(value);
+        if (out.isValid()) {
+            return ok(out);
+        } else {
+            return err(new InvalidPassword());
+        }
+    }
+
+    toJSON(): string {
+        return this.value;
     }
 }
 

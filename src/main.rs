@@ -64,7 +64,7 @@ async fn async_main() {
                 CookieIdentityPolicy::new(&session_key)
                     .name("HIMAWARI-AUTH")
                     .domain(std::env::var("DOMAIN").unwrap())
-                    .same_site(SameSite::Strict)
+                    .same_site(SameSite::Lax)
                     .max_age_secs(chrono::Duration::days(7).num_seconds())
                     .http_only(true)
                     .secure(true)

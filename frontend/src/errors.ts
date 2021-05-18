@@ -30,4 +30,8 @@ export class HttpError extends ApiError {
         super(getReasonPhrase(code));
         this.code = code
     }
+
+    longMessage(): string {
+        return `${this.code}: ${this.message}`
+    }
 }

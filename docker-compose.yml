@@ -21,6 +21,7 @@ services:
       - ${KEY}:/etc/ssl/certs/server.key
     ports:
       - 443:443
+      - 80:80
     environment:
       - HIMAWARI_API=host.docker.internal:${PORT}
       - HIMAWARI_FRONTEND=host.docker.internal:${FRONTEND_PORT}
