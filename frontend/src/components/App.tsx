@@ -8,7 +8,13 @@ import NoMatch from "./NoMatch";
 import Login from "./Login";
 import {Jumbotron} from "react-bootstrap";
 
-interface AppState extends GlobalAuthState {}
+interface SessionLoader {
+    isLoadingSession: boolean;
+    setLoadingSession: (loading: boolean) => void;
+}
+
+interface AppState extends GlobalAuthState, SessionLoader {
+}
 
 class App extends React.Component<{}, AppState> {
     state: AppState = {
@@ -17,18 +23,23 @@ class App extends React.Component<{}, AppState> {
             this.setState({
                 currentUser: state
             })
+        },
+        isLoadingSession: true,
+        setLoadingSession: loading => {
+            this.setState({
+                isLoadingSession: loading
+            })
         }
     };
 
     render() {
-
         return (
             <AuthContext.Provider value={this.state}>
                 <BrowserRouter>
-                    <header>
+                    <header className={"pb-3"}>
                         <Header/>
                     </header>
-                    <Jumbotron>
+                    <div className={"container"}>
                         <Switch>
                             <Route exact path="/">
                                 <Home/>
@@ -41,10 +52,27 @@ class App extends React.Component<{}, AppState> {
                                 <NoMatch/>
                             </Route>
                         </Switch>
-                    </Jumbotron>
+                        <hr/>
+                        <footer className={"text-center text-muted"}>
+                            <span>Copyright &copy; {copyrightYears()} Nick Samson</span>
+                            <br/>
+                            <span> <a className={"text-muted"}
+                                      href={"https://github.com/nisamson/himawari"}>Himawari on GitHub</a></span>
+                        </footer>
+                    </div>
+
                 </BrowserRouter>
             </AuthContext.Provider>
         );
+    }
+}
+
+function copyrightYears() {
+    let now = new Date().getFullYear();
+    if (now !== 2021) {
+        return `2021-${now}`;
+    } else {
+        return "2021";
     }
 }
 

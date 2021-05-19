@@ -54,7 +54,7 @@ function Header() {
         <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="mr-auto">
                 <Nav.Item>
-                    <Nav.Link as={NavLink} to={"/"} activeClassName={"active"}>Home</Nav.Link>
+                    <Nav.Link as={NavLink} to={"/"} exact={true} activeClassName={"active"}>Home</Nav.Link>
                 </Nav.Item>
                 <AuthContext.Consumer>
                     {state => <NavbarLogin currentUser={state.currentUser}/>}

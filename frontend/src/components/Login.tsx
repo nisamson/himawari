@@ -1,17 +1,21 @@
 import React from "react";
-import {HttpError, SimpleMessageError} from "../errors";
+import {SimpleMessageError} from "../errors";
 import {Alert, Button, Collapse, Form, OverlayTrigger, Popover} from "react-bootstrap";
 import {withRouter, RouteComponentProps} from "react-router-dom";
-import {LoginUser, Password} from "../model/users";
+import {BadLogin, LoginUser, Password} from "../model/users";
 import ConditionalWrapper from "./ConditionalWrapper";
 import {AuthState, GlobalAuthState} from "./AuthContext";
 import {Err} from "neverthrow";
+import {HttpError, RateLimited} from "../httpError";
+import {Link} from "react-router-dom";
+import "./Login.css";
 
 interface LoginState {
     username: string;
     password: string;
     lastAlert: (show: boolean) => JSX.Element;
     showAlert: boolean;
+    isAuthenticating: boolean;
 }
 
 function Overlay(children: JSX.Element) {
@@ -44,15 +48,20 @@ export default class Login extends React.Component<LoginProps & RouteComponentPr
         username: "",
         password: "",
         lastAlert: () => <></>,
-        showAlert: false
+        showAlert: false,
+        isAuthenticating: false,
     }
 
     render() {
-        return <div>
+        let isAuth = this.state.isAuthenticating;
+        return <div className={"Button text-center"}>
             <div>{this.state.lastAlert(this.state.showAlert)}</div>
-            <Form onSubmit={(e) => this.handleSubmit(e)}>
-                <Form.Group controlId="username">
-                    <Form.Label>Username</Form.Label>
+            <h1 className={"mb-3"}>Himawari</h1>
+
+            <h3 className={"mb-3"}>Welcome back! Please log in or <Link to={"/register"}>register</Link>.</h3>
+            <Form onSubmit={(e) => this.handleSubmit(e)} className={"form-signin"}>
+                <Form.Group controlId="username" id={"user-group"}>
+                    <Form.Label className={"sr-only"}>Username</Form.Label>
                     <Form.Control
                         autoFocus
                         type="text"
@@ -61,26 +70,31 @@ export default class Login extends React.Component<LoginProps & RouteComponentPr
                         onChange={e => this.setState({
                             username: e.target.value
                         })}
+                        placeholder={"Username"}
+                        required
                     />
                 </Form.Group>
-                <Form.Group controlId="password">
-                    <Form.Label>Password</Form.Label>
+                <Form.Group controlId="password" id={"pass-group"}>
+                    <Form.Label className={"sr-only"}>Password</Form.Label>
                     <Form.Control
                         type="password"
                         value={this.state.password}
                         onChange={(e) => this.setState({
                             password: e.target.value
                         })}
+                        placeholder={"Password"}
                         isValid={
                             Password.new(this.state.password).isOk()
                         }
+                        required
                     />
                 </Form.Group>
                 <ConditionalWrapper condition={!this.isValid()} wrapper={Overlay}>
                     <div>
-                        <Button block size="lg" type="submit" active={this.isValid()} disabled={!this.isValid()}
+                        <Button block size="lg" variant={"primary"} className={"btn-block"} type="submit"
+                                active={this.isValid()} disabled={!this.isValid()}
                                 style={!this.isValid() ? {pointerEvents: "none"} : {}}>
-                            Login
+                            {isAuth && <span className={"fas fa-sync login-spin text-white"}/>} Login
                         </Button>
                     </div>
                 </ConditionalWrapper>
@@ -93,6 +107,36 @@ export default class Login extends React.Component<LoginProps & RouteComponentPr
         return Password.new(this.state.password).isOk() && !!this.state.username
     }
 
+    private createLoginAlert(danger: boolean, heading: JSX.Element, contents: JSX.Element) {
+        return (show: boolean) => (<Alert variant={danger ? "danger" : "warning"}
+                                          show={show}
+                                          dismissible
+                                          transition={Collapse}
+                                          onClose={() => this.clearAlert()}>
+            <Alert.Heading>
+                {heading}
+            </Alert.Heading>
+            {contents}
+        </Alert>);
+    }
+
+    private startLogin() {
+        return new Promise((resolve => {
+            this.setState({
+                isAuthenticating: true
+            }, () => resolve(undefined));
+        }));
+
+    }
+
+    private endLogin() {
+        return new Promise((resolve => {
+            this.setState({
+                isAuthenticating: false
+            }, () => resolve(undefined));
+        }));
+    }
+
     private async handleSubmit(event: React.FormEvent) {
 
         if (!event) {
@@ -101,33 +145,39 @@ export default class Login extends React.Component<LoginProps & RouteComponentPr
 
         event.preventDefault();
 
+
+        await this.startLogin();
         let req = new LoginUser(this.state.username, Password.new(this.state.password)._unsafeUnwrap());
+        await this.endLogin();
         let out = await req.logIn();
         if (out.isErr()) {
             let error = out.error;
-            if (error instanceof HttpError) {
-                let e = error;
-                this.setState({
-                    lastAlert: (show) => (<Alert variant={"warning"} show={show} dismissible transition={Collapse} onClose={() => this.clearAlert()}>
-                        <Alert.Heading>
-                            Login failed.
-                        </Alert.Heading>
-                        <p>
-                            An error occurred: {e.longMessage()}
-                        </p>
-                    </Alert>),
-                    showAlert: true
-                });
+            if (!(error instanceof BadLogin)) {
+                if (error instanceof RateLimited) {
+                    this.setState({
+                        lastAlert: this.createLoginAlert(true,
+                            <>Too many attempts.</>,
+                            <p>
+                                You are being rate-limited due to too many login attempts too quickly.
+                                Please wait a few moments before trying again.
+                            </p>),
+                        showAlert: true
+                    });
+                } else {
+                    this.setState({
+                        lastAlert: this.createLoginAlert(false,
+                            <>Login failed</>,
+                            <p>
+                                An error occurred {error.longMessage()}
+                            </p>),
+                        showAlert: true
+                    });
+                }
             } else {
                 this.setState({
-                    lastAlert: (show) => <Alert variant={"danger"} show={show} dismissible transition={Collapse} onClose={() => this.clearAlert()}>
-                        <Alert.Heading>
-                            Invalid login.
-                        </Alert.Heading>
-                        <p>
-                            The login failed. Please check your username and password.
-                        </p>
-                    </Alert>,
+                    lastAlert: this.createLoginAlert(true, <>Invalid login.</>,
+                        <p>The login failed. Please check your
+                            username and password before trying again.</p>),
                     showAlert: true
                 });
             }
@@ -142,7 +192,7 @@ export default class Login extends React.Component<LoginProps & RouteComponentPr
             showAlert: false
         })
     }
-
 }
+
 
 withRouter(Login);
