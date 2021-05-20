@@ -6,19 +6,20 @@ use actix_identity::{IdentityService, CookieIdentityPolicy};
 use actix_web::middleware::Logger;
 use std::path::PathBuf;
 use actix_web::dev::{ServiceRequest, ServiceResponse};
-use actix_web::cookie::SameSite;
+use actix_web::cookie::{SameSite, CookieBuilder};
 use std::time::Duration;
+use crate::jwt::{CookieFactory};
 
 #[macro_use] extern crate serde;
-
-#[macro_use] extern crate born;
 
 #[macro_use]
 extern crate tracing;
 
+
 mod model;
 mod db;
 mod api;
+mod jwt;
 
 
 fn main() {
@@ -61,13 +62,16 @@ async fn async_main() {
     HttpServer::new(move || {
         App::new()
             .wrap(IdentityService::new(
-                CookieIdentityPolicy::new(&session_key)
-                    .name("HIMAWARI-AUTH")
-                    .domain(std::env::var("DOMAIN").unwrap())
-                    .same_site(SameSite::Lax)
-                    .max_age_secs(chrono::Duration::days(7).num_seconds())
-                    .http_only(true)
-                    .secure(true)
+                jwt::Policy::new(session_key,
+                                 CookieFactory {
+                                     name: "himawari-auth".to_string(),
+                                     domain: std::env::var("DOMAIN").unwrap(),
+                                     same_site: SameSite::Lax,
+                                     max_age: chrono::Duration::weeks(4),
+                                     http_only: true,
+                                     secure: true
+                                 }
+                )
             ))
             .wrap(Logger::default())
             .service(web::scope("/api")

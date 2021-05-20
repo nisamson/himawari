@@ -83,19 +83,19 @@ impl fmt::Debug for Password {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserRef {
     pub username: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LoginRequest {
     #[serde(flatten)]
     pub user: UserRef,
     pub password: Password,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CreationRequest {
     #[serde(flatten)]
     pub user: LoginRequest,

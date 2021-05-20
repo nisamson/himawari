@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {BrowserRouter, Switch, Route} from "react-router-dom";
 import Home from "./Home";
 import Header from "./Header";
@@ -16,25 +16,18 @@ interface SessionLoader {
 interface AppState extends GlobalAuthState, SessionLoader {
 }
 
-class App extends React.Component<{}, AppState> {
-    state: AppState = {
-        currentUser: new AuthState(null),
-        setCurrentUser: (state: AuthState) => {
-            this.setState({
-                currentUser: state
-            })
-        },
-        isLoadingSession: true,
-        setLoadingSession: loading => {
-            this.setState({
-                isLoadingSession: loading
-            })
-        }
-    };
+function App() {
+    const [currentUser, setCurrentUser] = useState(new AuthState(null));
+    const [isLoadingSession, setLoadingSession] = useState(true);
+    const state: AppState = {
+        currentUser: currentUser,
+        setCurrentUser: setCurrentUser,
+        isLoadingSession: isLoadingSession,
+        setLoadingSession: setLoadingSession
+    }
 
-    render() {
-        return (
-            <AuthContext.Provider value={this.state}>
+    return (
+            <AuthContext.Provider value={state}>
                 <BrowserRouter>
                     <header className={"pb-3"}>
                         <Header/>
@@ -46,7 +39,7 @@ class App extends React.Component<{}, AppState> {
                             </Route>
                             <Route exact path="/login">
                                 {/* @ts-ignore */}
-                                <Login state={this.state}/>
+                                <Login state={state}/>
                             </Route>
                             <Route path={"*"}>
                                 <NoMatch/>
@@ -64,9 +57,8 @@ class App extends React.Component<{}, AppState> {
                 </BrowserRouter>
             </AuthContext.Provider>
         );
-    }
-}
 
+}
 function copyrightYears() {
     let now = new Date().getFullYear();
     if (now !== 2021) {

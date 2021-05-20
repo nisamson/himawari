@@ -33,7 +33,7 @@ dependencies = [
  "brotli2",
  "bytes",
  "bytestring",
- "cookie",
+ "cookie 0.14.4",
  "derive_more",
  "encoding_rs",
  "flate2",
@@ -497,12 +497,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "born"
-version = "0.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a36f458b7ffeeb472ad79aea8895e038129942d5544cfcf00ab6d61c4af6466"
-
-[[package]]
 name = "brotli-sys"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -695,6 +689,16 @@ dependencies = [
  "percent-encoding",
  "rand 0.8.3",
  "sha2",
+ "time 0.2.26",
+ "version_check 0.9.3",
+]
+
+[[package]]
+name = "cookie"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ffdf8865bac3d9a3bde5bde9088ca431b11f5d37c7a578b8086af77248b76627"
+dependencies = [
  "time 0.2.26",
  "version_check 0.9.3",
 ]
@@ -1173,20 +1177,25 @@ dependencies = [
  "anyhow",
  "argonautica",
  "better-panic",
- "born",
  "chrono",
  "clap",
+ "cookie 0.15.0",
  "dotenv",
+ "hmac",
  "include_dir",
  "itertools 0.10.0",
+ "jwt",
  "mime_guess",
  "once_cell",
  "rand 0.8.3",
  "rustls 0.18.1",
  "serde",
+ "serde_json",
+ "sha2",
  "shrinkwraprs",
  "sqlx",
  "thiserror",
+ "time 0.2.26",
  "tokio",
  "tracing",
  "tracing-futures",
@@ -1334,6 +1343,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "83bdfbace3a0e81a4253f73b49e960b053e396a11012cbd49b9b74d6a2b67062"
 dependencies = [
  "wasm-bindgen",
+]
+
+[[package]]
+name = "jwt"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "86e46349d67dc03bdbdb28da0337a355a53ca1d5156452722c36fe21d0e6389b"
+dependencies = [
+ "base64 0.13.0",
+ "crypto-mac",
+ "digest",
+ "hmac",
+ "serde",
+ "serde_json",
+ "sha2",
 ]
 
 [[package]]
