@@ -1,14 +1,13 @@
 import React from "react";
-import {SimpleMessageError} from "../errors";
 import {Alert, Button, Collapse, Form, OverlayTrigger, Popover} from "react-bootstrap";
 import {withRouter, RouteComponentProps} from "react-router-dom";
-import {BadLogin, LoginUser, Password} from "../model/users";
+import {BadLogin, LoginUser} from "../model/users";
 import ConditionalWrapper from "./ConditionalWrapper";
 import {AuthState, GlobalAuthState} from "./AuthContext";
 import {Err} from "neverthrow";
-import {HttpError, RateLimited} from "../httpError";
 import {Link} from "react-router-dom";
 import "./Login.css";
+import {User} from "himawari-model";
 
 interface LoginState {
     username: string;
@@ -84,7 +83,7 @@ export default class Login extends React.Component<LoginProps & RouteComponentPr
                         })}
                         placeholder={"Password"}
                         isValid={
-                            Password.new(this.state.password).isOk()
+                            User.Password.new(this.state.password).isOk()
                         }
                         required
                     />

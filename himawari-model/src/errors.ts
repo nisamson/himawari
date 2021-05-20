@@ -1,3 +1,4 @@
+
 export abstract class ApiError extends Error {}
 
 export class BadArgument extends Error {
@@ -17,4 +18,3 @@ export abstract class SimpleMessageError extends ApiError {
         super(message)
     }
 }
-
