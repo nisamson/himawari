@@ -1,7 +1,7 @@
 import React from 'react';
 import {Nav, Navbar, NavDropdown} from "react-bootstrap";
 import logo from "../logo.svg";
-import {UserRef} from "../model/users";
+import {UserRef} from "../../model/old_users";
 import {AuthContext, AuthState} from "./AuthContext";
 import {Link, NavLink} from "react-router-dom";
 

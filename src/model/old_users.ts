@@ -1,7 +1,7 @@
 import {err, Err, Ok, ok, Result, ResultAsync} from "neverthrow";
-import {ApiError, SimpleMessageError} from "../errors";
+import {ApiError, SimpleMessageError} from "../client/errors";
 import {StatusCodes} from "http-status-codes";
-import {HttpError, AnyHttpError} from "../httpError";
+import {HttpError, AnyHttpError} from "../client/httpError";
 
 export class UserRef {
     username: string;

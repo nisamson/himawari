@@ -1,5 +1,5 @@
 import React from "react";
-import {UserRef} from "../model/users";
+import {UserRef} from "../../model/old_users";
 
 
 export interface GlobalAuthState {

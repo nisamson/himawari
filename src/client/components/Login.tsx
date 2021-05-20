@@ -2,7 +2,7 @@ import React from "react";
 import {SimpleMessageError} from "../errors";
 import {Alert, Button, Collapse, Form, OverlayTrigger, Popover} from "react-bootstrap";
 import {withRouter, RouteComponentProps} from "react-router-dom";
-import {BadLogin, LoginUser, Password} from "../model/users";
+import {BadLogin, LoginUser, Password} from "../../model/old_users";
 import ConditionalWrapper from "./ConditionalWrapper";
 import {AuthState, GlobalAuthState} from "./AuthContext";
 import {Err} from "neverthrow";
