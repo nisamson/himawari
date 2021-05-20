@@ -1,4 +1,5 @@
 
+include .env
 
 .PHONY: dev-run dev-compose himawari-backend himawari-frontend
 
@@ -11,4 +12,4 @@ himawari-backend:
 	cargo run --bin himawari --target x86_64-unknown-linux-musl
 
 himawari-frontend:
-	cd frontend && BROWSER=none yarn start
+	BROWSER=none PORT=${FRONTEND_PORT} yarn start

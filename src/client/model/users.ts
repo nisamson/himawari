@@ -1,16 +1,17 @@
 import {err, Err, Ok, ok, Result, ResultAsync} from "neverthrow";
-import {ApiError, SimpleMessageError} from "../client/errors";
 import {StatusCodes} from "http-status-codes";
-import {HttpError, AnyHttpError} from "../client/httpError";
+import {User} from "../../model";
+import {Http} from "../../model";
+import {SimpleMessageError} from "../../model";
 
-export class UserRef {
+export class UserRef implements User.Ref {
     username: string;
 
     constructor(username: string) {
         this.username = username;
     }
 
-    async logOut(): Promise<Result<void, AnyHttpError>> {
+    async logOut(): Promise<Result<void, Http.AnyError>> {
         let resp = await fetch("/api/login", {
             method: "DELETE",
             credentials: "same-origin"
@@ -19,7 +20,7 @@ export class UserRef {
         if (resp.ok) {
             return ok(undefined);
         } else {
-            return err(HttpError.fromStatus(resp.status));
+            return err(Http.Error.fromStatus(resp.status));
         }
     }
 }
@@ -30,15 +31,15 @@ export class BadLogin extends SimpleMessageError {
     }
 }
 
-export class LoginUser extends UserRef {
-    password: Password;
+export class LoginUser extends UserRef implements User.LoginRequest {
+    password: User.Password;
 
-    constructor(username: string, password: Password) {
+    constructor(username: string, password: User.Password) {
         super(username);
         this.password = password;
     }
 
-    async logIn(): Promise<Result<UserRef, AnyHttpError | BadLogin>> {
+    async logIn(): Promise<Result<UserRef, Http.AnyError | BadLogin>> {
         let resp = await fetch("/api/login", {
             method: "POST",
             body: JSON.stringify(this),
@@ -51,7 +52,7 @@ export class LoginUser extends UserRef {
         if (resp.ok) {
             return ok(new UserRef(this.username));
         } else if (![StatusCodes.UNAUTHORIZED, StatusCodes.BAD_REQUEST].includes(resp.status)) {
-            return err(HttpError.fromStatus(resp.status));
+            return err(Http.Error.fromStatus(resp.status));
         } else {
             return err(new BadLogin())
         }
@@ -65,15 +66,15 @@ export class UserAlreadyExists extends SimpleMessageError {
     }
 }
 
-export class CreateUser extends LoginUser {
+export class CreateUser extends LoginUser implements User.CreationRequest {
     email: string;
 
-    constructor(username: string, password: Password, email: string) {
+    constructor(username: string, password: User.Password, email: string) {
         super(username, password);
         this.email = email;
     }
 
-    async register(): Promise<Result<void, AnyHttpError | UserAlreadyExists>> {
+    async register(): Promise<Result<void, Http.AnyError | UserAlreadyExists>> {
         let resp = await fetch("/api/register", {
             method: "POST",
             body: JSON.stringify(this),
@@ -89,39 +90,7 @@ export class CreateUser extends LoginUser {
             if (resp.status === StatusCodes.CONFLICT) {
                 return new Err(new UserAlreadyExists());
             }
-            return new Err(HttpError.fromStatus(resp.status));
+            return new Err(Http.Error.fromStatus(resp.status));
         }
     }
 }
-
-export class InvalidPassword extends SimpleMessageError {
-    constructor() {
-        super("Passwords must be between 4 and 128 bytes long, inclusive.");
-    }
-}
-
-export class Password {
-    readonly value: string;
-
-    private constructor(value: string) {
-        this.value = value;
-    }
-
-    private isValid(): boolean {
-        return this.value.length >= 4 && this.value.length <= 128;
-    }
-
-    static new(value: string): Result<Password, InvalidPassword> {
-        let out = new Password(value);
-        if (out.isValid()) {
-            return ok(out);
-        } else {
-            return err(new InvalidPassword());
-        }
-    }
-
-    toJSON(): string {
-        return this.value;
-    }
-}
-

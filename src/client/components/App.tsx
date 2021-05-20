@@ -3,7 +3,7 @@ import {BrowserRouter, Switch, Route} from "react-router-dom";
 import Home from "./Home";
 import Header from "./Header";
 import {AuthContext, AuthState, GlobalAuthState} from "./AuthContext";
-import {UserRef} from "../../model/old_users";
+import {UserRef} from "../model/users";
 import NoMatch from "./NoMatch";
 import Login from "./Login";
 import {Jumbotron} from "react-bootstrap";
