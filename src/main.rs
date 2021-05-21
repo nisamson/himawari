@@ -41,7 +41,7 @@ async fn async_main() {
     tracing_subscriber::fmt::init();
 
 
-    let port = std::env::var("PORT").unwrap().parse::<u16>().unwrap();
+    let port = std::env::var("SERVER_PORT").unwrap().parse::<u16>().unwrap();
     let addr = format!("127.0.0.1:{}", port);
 
     info!("Connecting to database");
@@ -77,7 +77,8 @@ async fn async_main() {
             .service(web::scope("/api")
                 .service(api::login::login)
                 .service(api::login::logout)
-                .service(api::login::register))
+                .service(api::login::register)
+                .service(api::csp::csp_report))
             // .service(frontend::static_assets)
     })
         .bind(&addr)
