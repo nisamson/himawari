@@ -12,16 +12,9 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "class-validator": "^0.13.1",
-    "cors": "^2.8.5",
-    "debug": "^4.3.1",
     "dompurify": "^2.2.8",
-    "dotenv": "^9.0.2",
-    "express": "^4.17.1",
-    "express-winston": "^4.1.0",
     "http-status-codes": "^2.1.4",
-    "morgan": "^1.10.0",
     "neverthrow": "^4.2.1",
-    "pg": "^8.6.0",
     "random": "^3.0.6",
     "react": "^17.0.2",
     "react-bootstrap": "^1.6.0",
@@ -30,20 +23,15 @@
     "react-scripts": "4.0.3",
     "reflect-metadata": "^0.1.13",
     "tslog": "^3.2.0",
-    "typeorm": "^0.2.32",
-    "typescript": "^4.1.2",
-    "web-vitals": "^1.0.1",
-    "winston": "^3.3.3"
+    "typescript": "^4.1.2"
   },
   "scripts": {
     "dev:client": "react-scripts start",
+    "start": "react-scripts start",
     "build": "yarn build:client",
     "build:client": "react-scripts build",
-    "dev:server": "yarn nodemon --config server.nodemon.json src/server/index.ts",
-    "run:server": "yarn dev:server",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "typeorm": "node -r dotenv/config --loader ts-node/esm.mjs ./node_modules/typeorm/cli.js"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
@@ -64,20 +52,8 @@
     ]
   },
   "devDependencies": {
-    "@types/cors": "^2.8.10",
-    "@types/debug": "^4.1.5",
-    "@types/express": "^4.17.11",
     "@types/react-router-bootstrap": "^0.24.5",
-    "@types/react-router-dom": "^5.1.7",
-    "concurrently": "^6.1.0",
-    "nodemon": "^2.0.7",
-    "source-map-support": "^0.5.19",
-    "ts-loader": "^9.2.1",
-    "ts-node": "^9.1.1",
-    "wait-on": "^5.3.0",
-    "webpack": "^5.37.1",
-    "webpack-cli": "^4.7.0",
-    "webpack-node-externals": "^3.0.0"
+    "@types/react-router-dom": "^5.1.7"
   },
   "type": "module"
 }
