@@ -3,7 +3,9 @@
 *.cert
 *.key
 *.pem
-build/
+himawari-client/build/
+himawari-client/node_modules/
 dist/
 node_modules/
 build_server/
+target/
