@@ -2,7 +2,7 @@ import {Column, CreateDateColumn, Entity, PrimaryColumn} from "typeorm";
 import {IsEmail, MaxLength} from "class-validator";
 
 
-@Entity()
+@Entity({name: "users"})
 export class User {
 
     @PrimaryColumn()

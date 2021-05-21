@@ -37,14 +37,10 @@
   },
   "scripts": {
     "dev:client": "react-scripts start",
-    "dev:server": "concurrently -p name -c \"yellow,magenta\" -n \"tsc-watch,nodemon-server\" \"yarn dev:server:tsc\" \"yarn dev:server:nodemon\"",
-    "build": "yarn build:client && yarn build:server",
+    "build": "yarn build:client",
     "build:client": "react-scripts build",
-    "build:server": "yarn tsc --project ./src/server",
-    "dev:server:tsc": "yarn tsc --project ./src/server -w",
-    "dev:server:nodemon": "rm -f build_server/server/index.js && wait-on -l build_server/server/index.js && nodemon build_server/server/index.js",
-    "dev:server:ts-node": "yarn nodemon --config server.nodemon.json src/server/index.ts",
-    "run:server": "yarn build:server && node build_server/server/index.js",
+    "dev:server": "yarn nodemon --config server.nodemon.json src/server/index.ts",
+    "run:server": "yarn dev:server",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "typeorm": "node -r dotenv/config --loader ts-node/esm.mjs ./node_modules/typeorm/cli.js"
