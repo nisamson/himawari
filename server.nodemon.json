@@ -2,7 +2,8 @@
   "watch": [
     "src/server/",
     "src/model/",
-    ".env"
+    ".env",
+    "./*.json"
   ],
   "restartable": "rs",
   "ext": "js,ts,json",
