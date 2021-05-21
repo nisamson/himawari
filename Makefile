@@ -9,7 +9,7 @@ dev-compose:
 	docker-compose up -d
 
 himawari-backend:
-	cargo run
+	yarn dev:server
 
 himawari-frontend:
-	cd himawari-client && BROWSER=none PORT=${FRONTEND_PORT} yarn dev:client
+	BROWSER=none PORT=${FRONTEND_PORT} yarn dev:client

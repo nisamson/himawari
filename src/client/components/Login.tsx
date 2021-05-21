@@ -6,6 +6,7 @@ import ConditionalWrapper from "./ConditionalWrapper";
 import {AuthState, GlobalAuthState} from "./AuthContext";
 import {Err} from "neverthrow";
 import {Link} from "react-router-dom";
+import "./Login.css";
 import {Http, User} from "../../model";
 
 interface LoginState {
