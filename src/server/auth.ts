@@ -1,6 +1,6 @@
 import express from "express";
 import {StatusCodes} from "http-status-codes";
-import {validator} from "./model/validator.js";
+import {validator} from "./model/validator";
 
 
 export const loginRouter = express.Router();

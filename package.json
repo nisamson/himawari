@@ -23,6 +23,7 @@
     "mongoose": "^5.12.10",
     "morgan": "^1.10.0",
     "neverthrow": "^4.2.1",
+    "pg": "^8.6.0",
     "random": "^3.0.6",
     "react": "^17.0.2",
     "react-bootstrap": "^1.6.0",
@@ -32,16 +33,21 @@
     "react-scripts": "4.0.3",
     "reflect-metadata": "^0.1.13",
     "tslog": "^3.2.0",
+    "typeorm": "^0.2.32",
     "typescript": "^4.2.4"
   },
   "scripts": {
     "dev:client": "react-scripts start",
     "build": "yarn build:client",
+    "build:server": "yarn tsc --project src/server/tsconfig.json",
     "build:client": "react-scripts build",
+    "dev:server:tsc": "yarn tsc --project src/server/tsconfig.json -w",
+    "dev:server:run": "yarn nodemon --config compiled-server.nodemon.json build_server/server/index.js",
     "dev:server": "yarn nodemon --config server.nodemon.json src/server/index.ts",
     "run:server": "yarn dev:server",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "typeorm": "yarn build:server && node_modules/.bin/typeorm"
   },
   "eslintConfig": {
     "extends": [

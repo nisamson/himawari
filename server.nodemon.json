@@ -8,6 +8,6 @@
   "restartable": "rs",
   "ext": "js,ts,json",
   "execMap": {
-    "ts": "TS_NODE_CWD=src/server/ node --loader ts-node/esm.mjs"
+    "ts": "TS_NODE_PROJECT=src/server/tsconfig.json TS_NODE_CWD=src/server/ node --loader ts-node/esm.mjs"
   }
 }

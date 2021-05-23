@@ -2,30 +2,19 @@ version: "3.8"
 
 services:
   db:
-    image: mongo:latest
+    image: postgres
     container_name: himawari-db
     volumes:
-      - hima-mongo:/data/db
-    environment:
-      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASS}
-      - MONGO_INITDB_ROOT_USERNAME=${DB_USER}
+      - hima-data:/var/lib/postgresql/data
     ports:
-      - 27017:27017
-    restart: always
-  db-mon:
-    image: mongo-express:latest
-    restart: always
-    ports:
-      - 8081:8081
+      - ${DB_PORT}:5432
     environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=${DB_USER}
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=${DB_PASS}
-      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
-      - ME_CONFIG_MONGODB_SERVER=db
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_USER=${DB_USER}
+    restart: always
   nginx:
     image: nginx:latest
     container_name: himawari-nginx
-    restart: always
     volumes:
       - ./nginx-templates:/etc/nginx/templates
       - ${CERT}:/etc/ssl/certs/server.crt
@@ -42,5 +31,5 @@ services:
 
 
 volumes:
-  hima-mongo:
+  hima-data:
     driver: local
