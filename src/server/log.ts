@@ -1,4 +1,5 @@
 import {Logger} from "tslog";
+import {Logger as SQLLogger, QueryRunner} from "typeorm";
 
 import random from "random";
 import express from "express";
@@ -8,7 +9,7 @@ const consoleLogger = new Logger({name: "console", overwriteConsole: true});
 
 export const baseLogger = new Logger(
     {
-        name: "himawari"
+        name: "himawari",
     }
 )
 

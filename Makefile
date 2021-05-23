@@ -9,7 +9,7 @@ dev-compose:
 	docker-compose up -d
 
 himawari-backend:
-	yarn dev:server
+	yarn concurrently -c "blue,green" "yarn dev:server:tsc" "yarn dev:server:run"
 
 himawari-frontend:
 	BROWSER=none PORT=${FRONTEND_PORT} yarn dev:client

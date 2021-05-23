@@ -43,7 +43,8 @@
     "build:client": "react-scripts build",
     "dev:server:tsc": "yarn tsc --project src/server/tsconfig.json -w",
     "dev:server:run": "yarn nodemon --config compiled-server.nodemon.json build_server/server/index.js",
-    "dev:server": "yarn nodemon --config server.nodemon.json src/server/index.ts",
+    "dev:server:old": "yarn nodemon --config server.nodemon.json src/server/index.ts",
+    "dev:server": "make himawari-backend",
     "run:server": "yarn dev:server",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
@@ -75,6 +76,7 @@
     "@types/react-helmet": "^6.1.1",
     "@types/react-router-bootstrap": "^0.24.5",
     "@types/react-router-dom": "^5.1.7",
+    "concurrently": "^6.1.0",
     "nodemon": "^2.0.7",
     "source-map-support": "^0.5.19",
     "ts-node": "^9.1.1"
