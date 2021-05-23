@@ -1,4 +1,4 @@
-import {Column, CreateDateColumn, Entity, PrimaryColumn} from "typeorm";
+import {Column, CreateDateColumn, Entity, Index, PrimaryColumn} from "typeorm";
 import {IsEmail, MaxLength} from "class-validator";
 
 
@@ -18,7 +18,7 @@ export class User {
     // @ts-ignore
     displayName: string;
 
-    @Column({type: "citext"})
+    @Column({type: "citext", unique: true})
     @IsEmail()
     @MaxLength(128)
     // @ts-ignore

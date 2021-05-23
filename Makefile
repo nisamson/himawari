@@ -1,15 +1,11 @@
 
 include .env
 
-.PHONY: dev-run dev-compose himawari-backend himawari-frontend built-backend
+.PHONY: dev-run built-backend himawari-frontend
 
-dev-run: dev-compose himawari-backend himawari-frontend
-
-dev-compose:
+dev-run: built-backend
 	docker-compose up -d
-
-himawari-backend:
-	yarn concurrently -c "blue,green" "yarn dev:server:tsc" "yarn dev:server:run"
+	yarn concurrently -c "blue,green,yellow" -n "tsc,himawari,client" "yarn dev:server:tsc" "yarn dev:server:run" "make himawari-frontend"
 
 himawari-frontend:
 	BROWSER=none PORT=${FRONTEND_PORT} yarn dev:client

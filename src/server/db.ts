@@ -3,7 +3,7 @@ import {PostgresConnectionOptions} from "typeorm/driver/postgres/PostgresConnect
 import {User} from "./model/entities/users";
 import AsyncLock from "async-lock";
 import assert from "assert";
-import {InitUsers1621747462347} from "./model/migrations/1621747462347-InitUsers";
+import {InitUsers1621753068278} from "./model/migrations/1621753068278-InitUsers";
 
 assert(process.env.DB_DOMAIN, "DB_DOMAIN must be set to the database domain.");
 assert(process.env.DB_USER, "DB_USER must be set to the database user.");
@@ -21,7 +21,7 @@ const options: PostgresConnectionOptions = {
     type: "postgres",
     entities: [User],
     logging: true,
-    migrations: [InitUsers1621747462347],
+    migrations: [InitUsers1621753068278],
     migrationsRun: true
 }
 
