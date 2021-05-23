@@ -7,6 +7,7 @@ import {UserRef} from "../model/users";
 import NoMatch from "./NoMatch";
 import Login from "./Login";
 import {Jumbotron} from "react-bootstrap";
+import {Helmet} from "react-helmet";
 
 interface SessionLoader {
     isLoadingSession: boolean;
@@ -14,6 +15,16 @@ interface SessionLoader {
 }
 
 interface AppState extends GlobalAuthState, SessionLoader {
+}
+
+function HimaHelmet(props: {
+    readonly title?: string;
+    readonly description?: string;
+}) {
+    return <Helmet titleTemplate={"Himawari - %s"} defaultTitle={"Himawari Contest App"}>
+        {props.title && <title>{props.title}</title>}
+        <meta name={"description"} content={props.description ? props.description : "The Himawari contest app, a judging platform for running contests."}/>
+    </Helmet>;
 }
 
 function App() {
@@ -27,38 +38,42 @@ function App() {
     }
 
     return (
-            <AuthContext.Provider value={state}>
-                <BrowserRouter>
-                    <header className={"pb-3"}>
-                        <Header/>
-                    </header>
-                    <div className={"container"}>
-                        <Switch>
-                            <Route exact path="/">
-                                <Home/>
-                            </Route>
-                            <Route exact path="/login">
-                                {/* @ts-ignore */}
-                                <Login state={state}/>
-                            </Route>
-                            <Route path={"*"}>
-                                <NoMatch/>
-                            </Route>
-                        </Switch>
-                        <hr/>
-                        <footer className={"text-center text-muted"}>
-                            <span>Copyright &copy; {copyrightYears()} Nick Samson</span>
-                            <br/>
-                            <span> <a className={"text-muted"}
-                                      href={"https://github.com/nisamson/himawari"}>Himawari on GitHub</a></span>
-                        </footer>
-                    </div>
+        <AuthContext.Provider value={state}>
+            <BrowserRouter>
+                <header className={"pb-3"}>
+                    <Header/>
+                </header>
+                <div className={"container"}>
+                    <Switch>
+                        <Route exact path="/">
+                            <HimaHelmet/>
+                            <Home/>
+                        </Route>
+                        <Route exact path="/login">
+                            <HimaHelmet title={"Login"}/>
+                            {/* @ts-ignore */}
+                            <Login state={state}/>
+                        </Route>
+                        <Route path={"*"}>
+                            <HimaHelmet title={"Not Found"}/>
+                            <NoMatch/>
+                        </Route>
+                    </Switch>
+                    <hr/>
+                    <footer className={"text-center text-muted"}>
+                        <span>Copyright &copy; {copyrightYears()} Nick Samson</span>
+                        <br/>
+                        <span> <a className={"text-muted"}
+                                  href={"https://github.com/nisamson/himawari"}>Himawari on GitHub</a></span>
+                    </footer>
+                </div>
 
-                </BrowserRouter>
-            </AuthContext.Provider>
-        );
+            </BrowserRouter>
+        </AuthContext.Provider>
+    );
 
 }
+
 function copyrightYears() {
     let now = new Date().getFullYear();
     if (now !== 2021) {

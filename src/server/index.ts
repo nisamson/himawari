@@ -12,6 +12,10 @@ if (result.error) {
 import express from "express";
 import {apiRouter} from "./api.js";
 import {loggerMiddleware, baseLogger} from "./log.js";
+import db from "./db.js";
+
+// Initialize the database connection.
+await db();
 
 const app = express();
 const port = Number.parseInt(process.env.SERVER_PORT || "3000");

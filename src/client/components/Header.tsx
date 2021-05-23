@@ -1,6 +1,5 @@
 import React from 'react';
 import {Nav, Navbar, NavDropdown} from "react-bootstrap";
-import logo from "../logo.svg";
 import {UserRef} from "../model/users";
 import {AuthContext, AuthState} from "./AuthContext";
 import {Link, NavLink} from "react-router-dom";
@@ -42,7 +41,7 @@ function Header() {
     return <Navbar bg="dark" variant="dark" expand="lg">
         <Navbar.Brand as={Link} to="/">
             <img
-                src={logo}
+                src="/favicon.svg"
                 width="30"
                 height="30"
                 className="d-inline-block align-top"
