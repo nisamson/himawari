@@ -19,8 +19,8 @@ function generateRequestId(): number {
     return requestsSeen;
 }
 
-interface WithLogger {
-    log: Logger
+export interface WithLogger {
+    log?: Logger
 }
 
 export function loggerMiddleware (req: express.Request & Partial<WithLogger>, res: express.Response, next: express.NextFunction) {

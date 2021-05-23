@@ -18,7 +18,6 @@ OUT_JS = $(patsubst src/%.ts,build_server/%.js,$(SERVER_SRC))
 
 built-backend: $(OUT_JS)
 
-
 $(OUT_JS): $(SERVER_SRC)
 	yarn build:server
 

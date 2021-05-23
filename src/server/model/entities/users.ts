@@ -1,5 +1,6 @@
 import {Column, CreateDateColumn, Entity, Index, PrimaryColumn} from "typeorm";
 import {IsEmail, MaxLength} from "class-validator";
+import {User as UserModel} from "../../../model/users";
 
 
 @Entity()
@@ -35,4 +36,13 @@ export class User {
     @CreateDateColumn()
     // @ts-ignore
     created: Date
+
+    claims(): UserModel.Info {
+        return {
+            email: this.email,
+            created: this.created,
+            displayName: this.displayName,
+            username: this.username
+        }
+    }
 }

@@ -1,5 +1,6 @@
 import {err, ok, Result} from "neverthrow";
 import {SimpleMessageError} from "./errors";
+import {Length, MaxLength, MinLength, validateSync} from "class-validator";
 
 export module User {
     export interface Ref {
@@ -14,6 +15,12 @@ export module User {
         email: string;
     }
 
+    export interface Info extends Ref {
+        email: string;
+        created: Date;
+        displayName: string;
+    }
+
     export class InvalidPassword extends SimpleMessageError {
         constructor() {
             super("Passwords must be between 4 and 128 bytes long, inclusive.");
@@ -21,6 +28,7 @@ export module User {
     }
 
     export class Password {
+        @Length(4, 128, {always: true})
         readonly value: string;
 
         private constructor(value: string) {
@@ -28,7 +36,8 @@ export module User {
         }
 
         private isValid(): boolean {
-            return this.value.length >= 4 && this.value.length <= 128;
+            return validateSync(this,
+                {validationError: {target: false, value: false}}).length === 0;
         }
 
         static new(value: string): Result<Password, InvalidPassword> {

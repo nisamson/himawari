@@ -42,19 +42,8 @@ paths:
             Set-Cookie:
               schema:
                 type: string
-        '400':
+        '401':
           description: User or password was incorrect.
-    delete:
-      summary: Logs out an authenticated user
-      description: A logged in user will be logged out (their session will be invalidated).
-      responses:
-        '200':
-          description: User was successfully logged out.
-          headers:
-            Set-Cookie:
-              description: Cookie will be expired.
-              schema:
-                type: string
 components:
   securitySchemes:
     cookieAuth:

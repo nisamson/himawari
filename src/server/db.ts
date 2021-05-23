@@ -20,7 +20,7 @@ const options: PostgresConnectionOptions = {
     connectTimeoutMS: 5000,
     type: "postgres",
     entities: [User],
-    logging: true,
+    logging: ["warn"],
     migrations: [InitUsers1621753068278],
     migrationsRun: true
 }
