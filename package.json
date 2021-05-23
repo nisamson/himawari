@@ -47,7 +47,7 @@
     "run:server": "yarn dev:server",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "typeorm": "yarn build:server && node_modules/.bin/typeorm"
+    "typeorm": "make built-backend && node_modules/.bin/typeorm"
   },
   "eslintConfig": {
     "extends": [
