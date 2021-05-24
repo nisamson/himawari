@@ -16,9 +16,7 @@ SERVER_SRC += $(MODEL_SRC)
 SERVER_SRC += $(SERVER_ONLY_SRC)
 OUT_JS = $(patsubst src/%.ts,build_server/%.js,$(SERVER_SRC))
 
-built-backend: $(OUT_JS)
-
-$(OUT_JS): $(SERVER_SRC)
+built-backend:
 	yarn build:server
 
 .PHONY: clean

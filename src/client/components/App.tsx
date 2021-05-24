@@ -8,6 +8,8 @@ import NoMatch from "./NoMatch";
 import Login from "./Login";
 import {Jumbotron} from "react-bootstrap";
 import {Helmet} from "react-helmet";
+import Privacy from "./Privacy";
+import {Link} from "react-router-dom";
 
 interface SessionLoader {
     isLoadingSession: boolean;
@@ -54,17 +56,22 @@ function App() {
                             {/* @ts-ignore */}
                             <Login state={state}/>
                         </Route>
+                        <Route exact path="/privacy">
+                            <HimaHelmet title={"Privacy Policy"}/>
+                            <Privacy/>
+                        </Route>
                         <Route path={"*"}>
                             <HimaHelmet title={"Not Found"}/>
                             <NoMatch/>
                         </Route>
+
                     </Switch>
                     <hr/>
                     <footer className={"text-center text-muted"}>
                         <span>Copyright &copy; {copyrightYears()} Nick Samson</span>
                         <br/>
                         <span> <a className={"text-muted"}
-                                  href={"https://github.com/nisamson/himawari"}>Himawari on GitHub</a></span>
+                                  href={"https://github.com/nisamson/himawari"}>Himawari on GitHub</a> | <Link to={"/privacy"} className={"text-muted"}>Privacy Policy</Link></span>
                     </footer>
                 </div>
 

@@ -2,16 +2,16 @@ import express from "express";
 import {Result} from "neverthrow";
 import {Http} from "../../model";
 
-interface Validatable {
-    readonly fromAny: (obj: any) => Result<this, Http.BadRequest>
+export interface Validator<T> {
+    readonly fromAny: (obj: any) => Result<T, Http.BadRequest>
 }
 
-interface Validated<T> {
+export interface Validated<T> {
     validated: T
 }
 
-export function validator<T extends Validatable>(v: T) {
-    return function (req: express.Request & Partial<Validated<T>>, res: express.Response, next: express.NextFunction) {
+export function validator<U, T extends Validator<U>>(v: T) {
+    return function (req: express.Request & Partial<Validated<U>>, res: express.Response, next: express.NextFunction) {
         let out = v.fromAny(req.body);
         if (out.isOk()) {
             req.validated = out.value;

@@ -61,8 +61,8 @@ server {
         proxy_pass http://himawari;
     }
 
-    location ~ /api/ {
-        limit_req zone=login burst=10 delay=10;
+    location ~ /api/((login)|(register))$ {
+        limit_req zone=login burst=3 delay=5;
         limit_req_log_level warn;
         limit_req_status 429;
         proxy_pass http://himawari_api;

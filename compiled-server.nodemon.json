@@ -1,9 +1,6 @@
 {
   "watch": [
-    "src/server/",
-    "src/model/",
-    ".env",
-    "./*.json"
+    "build_server/"
   ],
   "restartable": "rs",
   "ext": "js,ts,json"

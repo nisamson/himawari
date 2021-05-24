@@ -9,7 +9,8 @@
     "moduleResolution": "node",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "isolatedModules": false
+    "isolatedModules": false,
+    "incremental": true
   },
   "exclude": [
     "../../build",

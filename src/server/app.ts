@@ -30,11 +30,10 @@ export async function go() {
     app.use("/api", apiRouter);
     app.use(function (err: Error, req: express.Request & WithLogger, res: express.Response, next: express.NextFunction) {
         if (err instanceof Http.RawError) {
-            return res.status(err.code).send(err.longMessage());
+            return res.status(err.code).contentType("text/plain").send(err.longMessage());
         } else {
             next(err);
         }
-
     });
 
     app.listen(port, "localhost", () => {

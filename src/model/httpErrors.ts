@@ -30,8 +30,19 @@ export module Http {
     }
 
     export class BadRequest extends RawError {
-        constructor() {
+        readonly details: string | null;
+        constructor(details?: string) {
             super(StatusCodes.BAD_REQUEST);
+            this.details = details || null;
+        }
+
+        longMessage(): string {
+            let original = super.longMessage();
+            if (!this.details) {
+                return original;
+            } else {
+                return `${original}\n${this.details}`
+            }
         }
     }
 

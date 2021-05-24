@@ -1,9 +1,10 @@
-import {createConnection, Connection} from "typeorm";
+import {createConnection, Connection, QueryFailedError} from "typeorm";
 import {PostgresConnectionOptions} from "typeorm/driver/postgres/PostgresConnectionOptions";
-import {User} from "./model/entities/users";
+import {UserEntity} from "./model/entities/users";
 import AsyncLock from "async-lock";
 import assert from "assert";
 import {InitUsers1621753068278} from "./model/migrations/1621753068278-InitUsers";
+import {DatabaseError} from "pg-protocol";
 
 assert(process.env.DB_DOMAIN, "DB_DOMAIN must be set to the database domain.");
 assert(process.env.DB_USER, "DB_USER must be set to the database user.");
@@ -19,7 +20,7 @@ const options: PostgresConnectionOptions = {
     password: process.env.DB_PASS,
     connectTimeoutMS: 5000,
     type: "postgres",
-    entities: [User],
+    entities: [UserEntity],
     logging: ["warn"],
     migrations: [InitUsers1621753068278],
     migrationsRun: true
@@ -40,3 +41,6 @@ export async function getConn(){
     return conn!;
 }
 
+export function isFailedQuery(err: any): err is QueryFailedError & DatabaseError {
+    return err.code && err instanceof QueryFailedError;
+}

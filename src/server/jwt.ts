@@ -3,7 +3,7 @@ import {Strategy, ExtractJwt} from "passport-jwt";
 import * as passjwt from "passport-jwt";
 import assert from "assert";
 import {User} from "../model";
-import {User as UserEntity} from "./model/entities/users";
+import {UserEntity as UserEntity} from "./model/entities/users";
 import {getConn} from "./db";
 import express from "express";
 import {WithLogger} from "./log";

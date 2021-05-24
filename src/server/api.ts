@@ -1,5 +1,5 @@
 import express from "express";
-import {loginRouter} from "./auth";
+import {loginRouter, registrationRouter} from "./auth";
 import {WithLogger} from "./log";
 
 
@@ -10,3 +10,5 @@ apiRouter.route("/report-csp-violation")
     .post(async (req: express.Request & Partial<WithLogger>, res, next) => {
         req.log?.debug(req.body)
     });
+
+apiRouter.use("/register", registrationRouter);

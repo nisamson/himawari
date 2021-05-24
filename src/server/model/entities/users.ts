@@ -4,7 +4,7 @@ import {User as UserModel} from "../../../model/users";
 
 
 @Entity()
-export class User {
+export class UserEntity {
     @PrimaryColumn({
         length: 64
     })
