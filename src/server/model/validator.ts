@@ -1,9 +1,10 @@
 import express from "express";
 import {Result} from "neverthrow";
 import {Http} from "../../model";
+import {WithLogger} from "../log";
 
 export interface Validator<T> {
-    readonly fromAny: (obj: any) => Result<T, Http.BadRequest>
+    readonly fromAny: (obj: any) => Result<T, Error>
 }
 
 export interface Validated<T> {
@@ -11,13 +12,14 @@ export interface Validated<T> {
 }
 
 export function validator<U, T extends Validator<U>>(v: T) {
-    return function (req: express.Request & Partial<Validated<U>>, res: express.Response, next: express.NextFunction) {
+    return function (req: express.Request & Partial<Validated<U>> & WithLogger, res: express.Response, next: express.NextFunction) {
         let out = v.fromAny(req.body);
         if (out.isOk()) {
             req.validated = out.value;
             next();
         } else {
-            next(out.error);
+            req.log?.debug(out.error);
+            next(new Http.BadRequest());
         }
     }
 }

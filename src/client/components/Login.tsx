@@ -37,11 +37,11 @@ function Overlay(children: JSX.Element) {
 }
 
 interface LoginProps {
-    state: GlobalAuthState
+    state: GlobalAuthState,
 }
 
 
-export default class Login extends React.Component<LoginProps & RouteComponentProps, LoginState> {
+class Login extends React.Component<LoginProps & RouteComponentProps, LoginState> {
     state: LoginState = {
         username: "",
         password: "",
@@ -193,4 +193,4 @@ export default class Login extends React.Component<LoginProps & RouteComponentPr
 }
 
 
-withRouter(Login);
+export default withRouter(Login);

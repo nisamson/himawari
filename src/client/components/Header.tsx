@@ -1,40 +1,50 @@
 import React from 'react';
-import {Nav, Navbar, NavDropdown} from "react-bootstrap";
+import {Alert, Nav, Navbar, NavDropdown, Toast} from "react-bootstrap";
 import {UserRef} from "../model/users";
-import {AuthContext, AuthState} from "./AuthContext";
-import {Link, NavLink} from "react-router-dom";
-
-interface NavbarArgs {
-    currentUser: AuthState
-}
+import {AuthContext, AuthState, GlobalAuthState} from "./AuthContext";
+import {Link, NavLink, useHistory} from "react-router-dom";
+import {AlertAction, AlertConsumer, AlertVariant} from "./AlertContext";
+import {toast} from "react-toastify";
 
 interface NavMenuArg {
-    currentUser: UserRef
+    authState: GlobalAuthState
 }
 
 function UserNavMenu(props: NavMenuArg) {
-    let user = props.currentUser;
+    let user = props.authState.currentUser.user!;
+    let history = useHistory();
+
+    function logout(_e: React.MouseEvent) {
+        props.authState.setCurrentUser(new AuthState(null));
+        toast.info("You are now logged out.");
+        history.push("/");
+    }
+
     return <Nav.Item>
         <NavDropdown id={"user-nav-dropdown"} title={user.username}>
             <NavDropdown.Divider/>
-            <NavDropdown.Item as={Link} to={"/logout"}>Logout</NavDropdown.Item>
+            <NavDropdown.Item href={"#"} onClick={logout}>Logout</NavDropdown.Item>
         </NavDropdown>
     </Nav.Item>
 }
 
-function NavbarLogin(props: NavbarArgs) {
-    if (props.currentUser.user) {
-        return <UserNavMenu currentUser={props.currentUser.user}/>
-    } else {
-        return <>
-            <Nav.Item>
-                <Nav.Link as={NavLink} to={"/login"} activeClassName={"active"}>Login</Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-                <Nav.Link as={NavLink} to={"/register"} activeClassName={"active"}>Register</Nav.Link>
-            </Nav.Item>
-        </>
-    }
+function NavbarLogin() {
+    return <AuthContext.Consumer>
+        {function (state) {
+            if (state.currentUser.user) {
+                return <UserNavMenu authState={state}/>
+            } else {
+                return <>
+                    <Nav.Item>
+                        <Nav.Link as={NavLink} to={"/login"} activeClassName={"active"}>Login</Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <Nav.Link as={NavLink} to={"/register"} activeClassName={"active"}>Register</Nav.Link>
+                    </Nav.Item>
+                </>
+            }
+        }}
+    </AuthContext.Consumer>
 }
 
 function Header() {
@@ -55,9 +65,7 @@ function Header() {
                 <Nav.Item>
                     <Nav.Link as={NavLink} to={"/"} exact={true} activeClassName={"active"}>Home</Nav.Link>
                 </Nav.Item>
-                <AuthContext.Consumer>
-                    {state => <NavbarLogin currentUser={state.currentUser}/>}
-                </AuthContext.Consumer>
+                <NavbarLogin/>
             </Nav>
         </Navbar.Collapse>
     </Navbar>

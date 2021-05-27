@@ -6,10 +6,12 @@ import {AuthContext, AuthState, GlobalAuthState} from "./AuthContext";
 import {UserRef} from "../model/users";
 import NoMatch from "./NoMatch";
 import Login from "./Login";
-import {Jumbotron} from "react-bootstrap";
 import {Helmet} from "react-helmet";
 import Privacy from "./Privacy";
-import {Link} from "react-router-dom";
+import {Link, useHistory} from "react-router-dom";
+import {AlertDisplay, AlertProvider} from "./AlertContext";
+import {cssTransition, ToastContainer} from "react-toastify";
+import 'react-toastify/dist/ReactToastify.min.css';
 
 interface SessionLoader {
     isLoadingSession: boolean;
@@ -25,7 +27,8 @@ function HimaHelmet(props: {
 }) {
     return <Helmet titleTemplate={"Himawari - %s"} defaultTitle={"Himawari Contest App"}>
         {props.title && <title>{props.title}</title>}
-        <meta name={"description"} content={props.description ? props.description : "The Himawari contest app, a judging platform for running contests."}/>
+        <meta name={"description"}
+              content={props.description ? props.description : "The Himawari contest app, a judging platform for running contests."}/>
     </Helmet>;
 }
 
@@ -37,46 +40,62 @@ function App() {
         setCurrentUser: setCurrentUser,
         isLoadingSession: isLoadingSession,
         setLoadingSession: setLoadingSession
-    }
+    };
 
     return (
-        <AuthContext.Provider value={state}>
-            <BrowserRouter>
-                <header className={"pb-3"}>
-                    <Header/>
-                </header>
-                <div className={"container"}>
-                    <Switch>
-                        <Route exact path="/">
-                            <HimaHelmet/>
-                            <Home/>
-                        </Route>
-                        <Route exact path="/login">
-                            <HimaHelmet title={"Login"}/>
-                            {/* @ts-ignore */}
-                            <Login state={state}/>
-                        </Route>
-                        <Route exact path="/privacy">
-                            <HimaHelmet title={"Privacy Policy"}/>
-                            <Privacy/>
-                        </Route>
-                        <Route path={"*"}>
-                            <HimaHelmet title={"Not Found"}/>
-                            <NoMatch/>
-                        </Route>
+        <AlertProvider>
+            <AuthContext.Provider value={state}>
+                <BrowserRouter>
+                    <header className={"pb-3"}>
+                        <Header/>
+                    </header>
+                    <ToastContainer
+                        autoClose={5000}
+                        position={"bottom-right"}
+                        hideProgressBar={true}
+                        transition={cssTransition({
+                            enter: "animista-fade-in-right",
+                            exit: "animista-fade-out-right"
+                        })}
+                        pauseOnHover
+                        pauseOnFocusLoss
+                        closeOnClick
+                        newestOnTop
+                    />
+                    <div className={"container"}>
+                        <AlertDisplay/>
+                        <Switch>
+                            <Route exact path="/">
+                                <HimaHelmet/>
+                                <Home/>
+                            </Route>
+                            <Route exact path="/login">
+                                <HimaHelmet title={"Login"}/>
+                                {/* @ts-ignore */}
+                                <Login state={state}/>
+                            </Route>
+                            <Route exact path="/privacy">
+                                <HimaHelmet title={"Privacy Policy"}/>
+                                <Privacy/>
+                            </Route>
+                            <Route path={"*"}>
+                                <HimaHelmet title={"Not Found"}/>
+                                <NoMatch/>
+                            </Route>
 
-                    </Switch>
-                    <hr/>
-                    <footer className={"text-center text-muted"}>
-                        <span>Copyright &copy; {copyrightYears()} Nick Samson</span>
-                        <br/>
-                        <span> <a className={"text-muted"}
-                                  href={"https://github.com/nisamson/himawari"}>Himawari on GitHub</a> | <Link to={"/privacy"} className={"text-muted"}>Privacy Policy</Link></span>
-                    </footer>
-                </div>
-
-            </BrowserRouter>
-        </AuthContext.Provider>
+                        </Switch>
+                        <hr/>
+                        <footer className={"text-center text-muted"}>
+                            <span>Copyright &copy; {copyrightYears()} Nick Samson</span>
+                            <br/>
+                            <span> <a className={"text-muted"}
+                                      href={"https://github.com/nisamson/himawari"}>Himawari on GitHub</a> | <Link
+                                to={"/privacy"} className={"text-muted"}>Privacy Policy</Link></span>
+                        </footer>
+                    </div>
+                </BrowserRouter>
+            </AuthContext.Provider>
+        </AlertProvider>
     );
 
 }

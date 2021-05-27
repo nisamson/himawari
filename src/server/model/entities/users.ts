@@ -3,7 +3,7 @@ import {IsEmail, MaxLength} from "class-validator";
 import {User as UserModel} from "../../../model/users";
 
 
-@Entity()
+@Entity({name: "users"})
 export class UserEntity {
     @PrimaryColumn({
         length: 64

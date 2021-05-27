@@ -84,7 +84,7 @@ class RegistrationForm implements User.CreationRequest {
     static new(email: string, password: User.Password, username: string): Result<RegistrationForm, ValidationError[]> {
         let provisional = new RegistrationForm(email, password, username);
         let errs = validateSync(provisional);
-        if (errs) {
+        if (errs.length !== 0) {
             return err(errs);
         } else {
             return ok(provisional);
