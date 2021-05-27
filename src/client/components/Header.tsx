@@ -1,27 +1,23 @@
 import React from 'react';
 import {Alert, Nav, Navbar, NavDropdown, Toast} from "react-bootstrap";
 import {UserRef} from "../model/users";
-import {AuthContext, AuthState, GlobalAuthState} from "./AuthContext";
+import {AuthContext, AuthContextState, AuthInfo, AuthState} from "./AuthContext";
 import {Link, NavLink, useHistory} from "react-router-dom";
 import {AlertAction, AlertConsumer, AlertVariant} from "./AlertContext";
 import {toast} from "react-toastify";
 
-interface NavMenuArg {
-    authState: GlobalAuthState
-}
-
-function UserNavMenu(props: NavMenuArg) {
-    let user = props.authState.currentUser.user!;
+function UserNavMenu(props: {state: AuthContextState}) {
+    let user = props.state.state!.info.displayName;
     let history = useHistory();
 
     function logout(_e: React.MouseEvent) {
-        props.authState.setCurrentUser(new AuthState(null));
+        props.state.dispatch({type: "logout"});
         toast.info("You are now logged out.");
         history.push("/");
     }
 
     return <Nav.Item>
-        <NavDropdown id={"user-nav-dropdown"} title={user.username}>
+        <NavDropdown id={"user-nav-dropdown"} title={user}>
             <NavDropdown.Divider/>
             <NavDropdown.Item href={"#"} onClick={logout}>Logout</NavDropdown.Item>
         </NavDropdown>
@@ -31,8 +27,8 @@ function UserNavMenu(props: NavMenuArg) {
 function NavbarLogin() {
     return <AuthContext.Consumer>
         {function (state) {
-            if (state.currentUser.user) {
-                return <UserNavMenu authState={state}/>
+            if (state.state) {
+                return <UserNavMenu state={state}/>
             } else {
                 return <>
                     <Nav.Item>

@@ -3,6 +3,7 @@ import {StatusCodes} from "http-status-codes";
 import {User} from "../../model";
 import {Http} from "../../model";
 import {SimpleMessageError} from "../../model";
+import jwt from "jsonwebtoken";
 
 export class UserRef implements User.Ref {
     username: string;
@@ -39,18 +40,17 @@ export class LoginUser extends UserRef implements User.LoginRequest {
         this.password = password;
     }
 
-    async logIn(): Promise<Result<UserRef, Http.AnyError | BadLogin>> {
+    async logIn(): Promise<Result<{token: string}, Http.AnyError | BadLogin>> {
         let resp = await fetch("/api/login", {
             method: "POST",
             body: JSON.stringify(this),
-            credentials: "same-origin",
             headers: {
                 "Content-Type": "application/json"
             }
         });
 
         if (resp.ok) {
-            return ok(new UserRef(this.username));
+            return ok(await resp.json());
         } else if (![StatusCodes.UNAUTHORIZED, StatusCodes.BAD_REQUEST].includes(resp.status)) {
             return err(Http.Error.fromStatus(resp.status));
         } else {
@@ -93,4 +93,39 @@ export class CreateUser extends LoginUser implements User.CreationRequest {
             return new Err(Http.Error.fromStatus(resp.status));
         }
     }
+}
+
+export class LoggedInUser implements User.Info {
+    created: Date;
+    displayName: string;
+    email: string;
+    username: string;
+
+    private constructor(created: Date, displayName: string, email: string, username: string) {
+        this.created = created;
+        this.displayName = displayName;
+        this.email = displayName;
+        this.username = username;
+    }
+
+    static new(tok: string): Result<LoggedInUser, Error> {
+        let parsed = jwt.decode(tok, {json: true});
+
+        if (!parsed) {
+            return err(new Error(`Couldn't parse token: ${tok}`))
+        }
+
+        let asInfo: any = parsed;
+        if (!asInfo.sub || !asInfo.email || !asInfo.created || !asInfo.displayName) {
+            return err(new Error("Missing one or more token values."));
+        }
+
+        return ok(new LoggedInUser(
+            new Date(asInfo.created as string),
+            asInfo.displayName as string,
+            asInfo.email as string,
+            asInfo.sub as string
+        ));
+    }
+
 }

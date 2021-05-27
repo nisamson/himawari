@@ -56,7 +56,7 @@ loginRouter.route("/")
                 req.login(user, {session: false}, (err) => {
                     if (err) return next(err);
                     let token = makeToken(user);
-                    return res.json(token);
+                    return res.json({token});
                 });
             } catch (e) {
                 return next(e);

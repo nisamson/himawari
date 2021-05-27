@@ -3,7 +3,7 @@ import {Alert, Button, Collapse, Form, OverlayTrigger, Popover} from "react-boot
 import {withRouter, RouteComponentProps} from "react-router-dom";
 import {BadLogin, LoginUser} from "../model/users";
 import ConditionalWrapper from "./ConditionalWrapper";
-import {AuthState, GlobalAuthState} from "./AuthContext";
+import {AuthContextState, AuthState} from "./AuthContext";
 import {Err} from "neverthrow";
 import {Link} from "react-router-dom";
 import {Http, User} from "../../model";
@@ -37,7 +37,7 @@ function Overlay(children: JSX.Element) {
 }
 
 interface LoginProps {
-    state: GlobalAuthState,
+    state: AuthContextState,
 }
 
 
@@ -180,7 +180,7 @@ class Login extends React.Component<LoginProps & RouteComponentProps, LoginState
                 });
             }
         } else {
-            this.props.state.setCurrentUser(new AuthState(out.value));
+            this.props.state.dispatch({type: "login", jwt: out.value.token})
             this.props.history.push("/");
         }
     }
