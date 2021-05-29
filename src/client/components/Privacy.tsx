@@ -39,6 +39,10 @@ export default function () {
             address with them to deliver transactional emails as mentioned above.
         </p>
         <p>
+            We use reCAPTCHA on the registration page to verify that you are a human trying to use the service. You can see
+            Google's privacy policy for the data used in reCAPTCHA <a href={"https://www.google.com/intl/en/policies/privacy/"}>here</a>.
+        </p>
+        <p>
             We will <i>never</i> sell the information you give us to third-parties.
         </p>
         <p>

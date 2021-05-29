@@ -1,5 +1,5 @@
 import {Button, Container, Form, Jumbotron} from "react-bootstrap";
-import React, {useState} from "react";
+import React, {useRef, useState} from "react";
 import {Link, useHistory} from "react-router-dom";
 import {User} from "../../model";
 import {validateSync, IsEmail, Length, ValidationError} from "class-validator";
@@ -8,14 +8,7 @@ import {load} from "recaptcha-v3";
 import {toast} from "react-toastify";
 import {CreateUser} from "../model/users";
 import useStateWithCallback, {useStateWithCallbackLazy} from "use-state-with-callback";
-
-function CaptchaBranding() {
-    return <span className={"text-muted"}>
-        This site is protected by reCAPTCHA and the Google
-        <a href="https://policies.google.com/privacy"> Privacy Policy</a> and
-        <a href="https://policies.google.com/terms"> Terms of Service</a> apply.
-    </span>
-}
+import ReCAPTCHA from "react-google-recaptcha";
 
 class RegistrationForm {
 
@@ -76,6 +69,8 @@ class RegistrationForm {
     }
 }
 
+const recaptchaRef = React.createRef<ReCAPTCHA>();
+
 export function Register() {
 
     let [username, setUsername] = useState("");
@@ -83,6 +78,7 @@ export function Register() {
     let [passwordConfirm, setPasswordConfirm] = useState("");
     let [email, setEmail] = useState("");
     let [emailConfirm, setEmailConfirm] = useState("");
+    let [captchaToken, setCaptchaToken] = useState("" as string | null)
     let [authenticating, setAuthenticating] = useStateWithCallbackLazy(false);
     let history = useHistory();
 
@@ -127,6 +123,10 @@ export function Register() {
             return err(email);
         }
 
+        if (!captchaToken) {
+            return err("Captcha hasn't been set.");
+        }
+
         let v = regForm.validate();
         if (v.isErr()) {
             return err(v.error);
@@ -156,12 +156,8 @@ export function Register() {
                 return;
             }
 
-            const recaptcha = await load("6LemZfcaAAAAAGX04zp36xgHbUy68KaBTFYN5ymB", {
-                autoHideBadge: true,
-            });
-            const token = await recaptcha.execute("register");
             let form: User.VerifiedCreationRequest = {
-                captchaToken: token,
+                captchaToken: captchaToken!,
                 password: regForm.validPassword()._unsafeUnwrap(),
                 email: regForm.email,
                 username: regForm.username
@@ -176,25 +172,25 @@ export function Register() {
 
             if (res.isErr()) {
                 toast.error(res.error.toString());
-                await new Promise<void>((resolve) => {
-                    setAuthenticating(false, () => {
-                        resolve()
-                    });
-                });
             } else {
                 toast.success("Created account! You can now log in.");
                 history.push("/");
+                return;
             }
 
         } catch (e) {
             console.error(e);
             toast.error("An error occurred while trying to submit the form. Try again later.");
-            await new Promise<void>((resolve) => {
-                setAuthenticating(false, () => {
-                    resolve()
-                });
-            });
         }
+
+        await new Promise<void>((resolve) => {
+            setAuthenticating(false, () => {
+                resolve()
+            });
+        });
+
+        setCaptchaToken(null);
+        recaptchaRef.current!.reset();
     }
 
     return <div className={"Register text-center"}>
@@ -261,7 +257,10 @@ export function Register() {
                         required
                     />
                 </Form.Group>
-                <CaptchaBranding/>
+                <ReCAPTCHA sitekey={"6LeD-voaAAAAAEUgls6a3FQJDB56w-OpRjd5bBja"}
+                           onChange={setCaptchaToken}
+                           ref={recaptchaRef}
+                />
                 <Button block size="lg" variant={"primary"} className={"btn-block mt-3"} type="submit"
                         active={validated.isOk() && !authenticating} disabled={validated.isErr() || authenticating}
                         style={(validated.isErr() || authenticating) ? {pointerEvents: "none"} : {}}>

@@ -14,7 +14,7 @@ import {err, ok, Result} from "neverthrow";
 import {IsEmail, MaxLength, validateSync, ValidationError} from "class-validator";
 import {QueryFailedError} from "typeorm";
 import {PG_CHECK_VIOLATION, PG_UNIQUE_VIOLATION} from "@drdgvhbh/postgres-error-codes";
-import {DEFAULT_THRESHOLD, verifyRecaptcha} from "./recaptcha";
+import {verifyRecaptcha} from "./recaptchav2";
 
 
 export const loginRouter = express.Router();
@@ -129,11 +129,7 @@ registrationRouter.route("/")
         }
 
         let resp = captchaResp._unsafeUnwrap();
-        if (resp.action != "register") {
-            return next(new Http.BadRequest());
-        }
-
-        if (resp.score < DEFAULT_THRESHOLD) {
+        if (!resp.success) {
             return next(new Http.RateLimited());
         }
 

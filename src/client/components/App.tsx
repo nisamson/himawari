@@ -71,7 +71,7 @@ function App() {
                             <HimaHelmet title={"Privacy Policy"}/>
                             <Privacy/>
                         </Route>
-                        <Route>
+                        <Route exact path={"/register"}>
                             <HimaHelmet title={"Register"}/>
                             <Register/>
                         </Route>

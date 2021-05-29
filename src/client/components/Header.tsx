@@ -18,8 +18,9 @@ function UserNavMenu(props: {state: AuthContextState}) {
 
     return <Nav.Item>
         <NavDropdown id={"user-nav-dropdown"} title={user}>
+            <NavDropdown.Item as={NavLink} to={"/profile"} activeClassName={"active"}>Profile</NavDropdown.Item>
             <NavDropdown.Divider/>
-            <NavDropdown.Item href={"#"} onClick={logout}>Logout</NavDropdown.Item>
+            <NavDropdown.Item href={"#"} onClick={logout} activeClassName={"active"}>Logout</NavDropdown.Item>
         </NavDropdown>
     </Nav.Item>
 }
