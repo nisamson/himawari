@@ -66,12 +66,13 @@ export class UserAlreadyExists extends SimpleMessageError {
     }
 }
 
-export class CreateUser extends LoginUser implements User.CreationRequest {
+export class CreateUser extends LoginUser implements User.VerifiedCreationRequest {
     email: string;
 
-    constructor(username: string, password: User.Password, email: string) {
+    constructor(username: string, password: User.Password, email: string, captchaToken: string) {
         super(username, password);
         this.email = email;
+        this.captchaToken = captchaToken;
     }
 
     async register(): Promise<Result<void, Http.AnyError | UserAlreadyExists>> {
@@ -93,6 +94,8 @@ export class CreateUser extends LoginUser implements User.CreationRequest {
             return new Err(Http.Error.fromStatus(resp.status));
         }
     }
+
+    captchaToken: string;
 }
 
 export class LoggedInUser implements User.Info {

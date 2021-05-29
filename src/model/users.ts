@@ -15,6 +15,10 @@ export module User {
         email: string;
     }
 
+    export interface VerifiedCreationRequest extends CreationRequest {
+        captchaToken: string;
+    }
+
     export interface Info extends Ref {
         email: string;
         created: Date;

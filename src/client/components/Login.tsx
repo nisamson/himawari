@@ -1,5 +1,5 @@
 import React from "react";
-import {Alert, Button, Collapse, Form, OverlayTrigger, Popover} from "react-bootstrap";
+import {Alert, Button, Collapse, Form, Jumbotron, OverlayTrigger, Popover} from "react-bootstrap";
 import {withRouter, RouteComponentProps} from "react-router-dom";
 import {BadLogin, LoginUser} from "../model/users";
 import ConditionalWrapper from "./ConditionalWrapper";
@@ -7,6 +7,7 @@ import {AuthContextState, AuthState} from "./AuthContext";
 import {Err} from "neverthrow";
 import {Link} from "react-router-dom";
 import {Http, User} from "../../model";
+import {toast} from "react-toastify";
 
 interface LoginState {
     username: string;
@@ -54,50 +55,53 @@ class Login extends React.Component<LoginProps & RouteComponentProps, LoginState
         let isAuth = this.state.isAuthenticating;
         return <div className={"Button text-center"}>
             <div>{this.state.lastAlert(this.state.showAlert)}</div>
-            <h1 className={"mb-3"}>Himawari</h1>
+            <Jumbotron>
+                <h1 className={"mb-3"}>Himawari</h1>
 
-            <h3 className={"mb-3"}>Welcome back! Please log in or <Link to={"/register"}>register</Link>.</h3>
-            <Form onSubmit={(e) => this.handleSubmit(e)} className={"form-signin"}>
-                <Form.Group controlId="username" id={"user-group"}>
-                    <Form.Label className={"sr-only"}>Username</Form.Label>
-                    <Form.Control
-                        autoFocus
-                        type="text"
-                        value={this.state.username}
-                        isValid={!!this.state.username}
-                        onChange={e => this.setState({
-                            username: e.target.value
-                        })}
-                        placeholder={"Username"}
-                        required
-                    />
-                </Form.Group>
-                <Form.Group controlId="password" id={"pass-group"}>
-                    <Form.Label className={"sr-only"}>Password</Form.Label>
-                    <Form.Control
-                        type="password"
-                        value={this.state.password}
-                        onChange={(e) => this.setState({
-                            password: e.target.value
-                        })}
-                        placeholder={"Password"}
-                        isValid={
-                            User.Password.new(this.state.password).isOk()
-                        }
-                        required
-                    />
-                </Form.Group>
-                <ConditionalWrapper condition={!this.isValid()} wrapper={Overlay}>
-                    <div>
-                        <Button block size="lg" variant={"primary"} className={"btn-block"} type="submit"
-                                active={this.isValid()} disabled={!this.isValid()}
-                                style={!this.isValid() ? {pointerEvents: "none"} : {}}>
-                            {isAuth && <span className={"fas fa-sync login-spin text-white"}/>} Login
-                        </Button>
-                    </div>
-                </ConditionalWrapper>
-
-            </Form>
+                <h3 className={"mb-3"}>Welcome back! Please log in or <Link to={"/register"}>register</Link>.</h3>
+                <Form onSubmit={(e) => this.handleSubmit(e)} className={"form-signin"}>
+                    <Form.Group controlId="username" id={"user-group"}>
+                        <Form.Label className={"sr-only"}>Username</Form.Label>
+                        <Form.Control
+                            autoFocus
+                            type="text"
+                            autoComplete={"username"}
+                            value={this.state.username}
+                            isValid={!!this.state.username}
+                            onChange={e => this.setState({
+                                username: e.target.value
+                            })}
+                            placeholder={"Username"}
+                            required
+                        />
+                    </Form.Group>
+                    <Form.Group controlId="password" id={"pass-group"}>
+                        <Form.Label className={"sr-only"}>Password</Form.Label>
+                        <Form.Control
+                            type="password"
+                            value={this.state.password}
+                            onChange={(e) => this.setState({
+                                password: e.target.value
+                            })}
+                            autoComplete={"current-password"}
+                            placeholder={"Password"}
+                            isValid={
+                                User.Password.new(this.state.password).isOk()
+                            }
+                            required
+                        />
+                    </Form.Group>
+                    <ConditionalWrapper condition={!this.isValid()} wrapper={Overlay}>
+                        <div>
+                            <Button block size="lg" variant={"primary"} className={"btn-block"} type="submit"
+                                    active={this.isValid()} disabled={!this.isValid()}
+                                    style={!this.isValid() ? {pointerEvents: "none"} : {}}>
+                                {isAuth && <span className={"fas fa-sync animation-spin text-white"}/>} Login
+                            </Button>
+                        </div>
+                    </ConditionalWrapper>
+                </Form>
+            </Jumbotron>
         </div>
     }
 
@@ -152,32 +156,12 @@ class Login extends React.Component<LoginProps & RouteComponentProps, LoginState
             let error = out.error;
             if (!(error instanceof BadLogin)) {
                 if (error instanceof Http.RateLimited) {
-                    this.setState({
-                        lastAlert: this.createLoginAlert(true,
-                            <>Too many attempts.</>,
-                            <p>
-                                You are being rate-limited due to too many login attempts too quickly.
-                                Please wait a few moments before trying again.
-                            </p>),
-                        showAlert: true
-                    });
+                    toast.error("Too many login attempts and/or the server thinks you're a bot. Try again in a few moments.");
                 } else {
-                    this.setState({
-                        lastAlert: this.createLoginAlert(false,
-                            <>Login failed</>,
-                            <p>
-                                An error occurred {error.longMessage()}
-                            </p>),
-                        showAlert: true
-                    });
+                    toast.warn(`An error occurred: ${error.longMessage()}`);
                 }
             } else {
-                this.setState({
-                    lastAlert: this.createLoginAlert(true, <>Invalid login.</>,
-                        <p>The login failed. Please check your
-                            username and password before trying again.</p>),
-                    showAlert: true
-                });
+                toast.error("Login failed. Please check your username and password before trying again.");
             }
         } else {
             this.props.state.dispatch({type: "login", jwt: out.value.token})

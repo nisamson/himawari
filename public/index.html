@@ -2,15 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
-<!--    <meta http-equiv="Content-Security-Policy"-->
-<!--          content="-->
-<!--            default-src 'self';-->
-<!--            font-src https://cdnjs.cloudflare.com;-->
-<!--            script-src 'self';-->
-<!--            img-src 'self' https: data:;-->
-<!--            style-src 'self' https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css;-->
-<!--        "-->
-<!--    />-->
+    <meta http-equiv="Content-Security-Policy"
+          content="
+            default-src 'self';
+            font-src https://cdnjs.cloudflare.com;
+            script-src 'self' https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css
+            https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css
+            https://www.google.com/recaptcha/
+            https://www.gstatic.com/recaptcha/;
+            img-src 'self' https: data:;
+            style-src 'self' https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css
+            https://cdn.jsdelivr.net/npm/react-toastify@7.0.4/dist/ReactToastify.min.css
+            https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css
+            https://www.google.com/recaptcha/
+            https://www.gstatic.com/recaptcha/;
+            frame-src 'self' https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/;
+        "
+    />
     <link rel="icon" href="%PUBLIC_URL%/favicon.svg"/>
     <link rel="alternate icon" href="%PUBLIC_URL%/favicon.ico"/>
     <meta name="viewport" content="width=device-width, initial-scale=1 shrink-to-fit=no"/>
@@ -34,8 +42,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
           integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
           crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/react-toastify@7.0.4/dist/ReactToastify.min.css"
+          integrity="sha256-toLwkh3GvCNqNsZPLji8eaVHKC+nsl1Fe0I4rYtQJhg=" crossorigin="anonymous">
     <link rel="stylesheet" href="%PUBLIC_URL%/Login.css"/>
     <link rel="stylesheet" href="%PUBLIC_URL%/global.css"/>
+    <link rel="stylesheet" href="%PUBLIC_URL%/Register.css"/>
     <!--
       Notice the use of %PUBLIC_URL% in the tags above.
       It will be replaced with the URL of the `public` folder during the build.

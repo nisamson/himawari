@@ -70,3 +70,16 @@
         opacity: 1;
     }
 }
+
+.animation-spin {
+    animation: full-spin 500ms infinite linear;
+}
+
+@keyframes full-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(359deg);
+    }
+}

@@ -12,7 +12,7 @@ import Privacy from "./Privacy";
 import {Link, useHistory} from "react-router-dom";
 import {AlertDisplay, AlertProvider} from "./AlertContext";
 import {cssTransition, ToastContainer} from "react-toastify";
-import 'react-toastify/dist/ReactToastify.min.css';
+import {Register} from "./Register";
 
 interface SessionLoader {
     isLoadingSession: boolean;
@@ -70,6 +70,10 @@ function App() {
                         <Route exact path="/privacy">
                             <HimaHelmet title={"Privacy Policy"}/>
                             <Privacy/>
+                        </Route>
+                        <Route>
+                            <HimaHelmet title={"Register"}/>
+                            <Register/>
                         </Route>
                         <Route path={"*"}>
                             <HimaHelmet title={"Not Found"}/>

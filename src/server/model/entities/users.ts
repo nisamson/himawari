@@ -8,7 +8,7 @@ export class UserEntity {
     @PrimaryColumn({
         length: 64
     })
-    @MaxLength(64)
+    @MaxLength(464)
     // @ts-ignore
     username: string;
 

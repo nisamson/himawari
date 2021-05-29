@@ -14,6 +14,7 @@ import {err, ok, Result} from "neverthrow";
 import {IsEmail, MaxLength, validateSync, ValidationError} from "class-validator";
 import {QueryFailedError} from "typeorm";
 import {PG_CHECK_VIOLATION, PG_UNIQUE_VIOLATION} from "@drdgvhbh/postgres-error-codes";
+import {DEFAULT_THRESHOLD, verifyRecaptcha} from "./recaptcha";
 
 
 export const loginRouter = express.Router();
@@ -66,7 +67,7 @@ loginRouter.route("/")
 
 export const registrationRouter = express.Router();
 
-class RegistrationForm implements User.CreationRequest {
+class RegistrationForm implements User.VerifiedCreationRequest {
     @IsEmail()
     email: string;
 
@@ -75,14 +76,17 @@ class RegistrationForm implements User.CreationRequest {
     @MaxLength(64)
     username: string;
 
-    private constructor(email: string, password: User.Password, username: string) {
+    captchaToken: string;
+
+    private constructor(email: string, password: User.Password, username: string, captchaToken: string) {
         this.email = email;
         this.password = password;
         this.username = username;
+        this.captchaToken = captchaToken;
     }
 
-    static new(email: string, password: User.Password, username: string): Result<RegistrationForm, ValidationError[]> {
-        let provisional = new RegistrationForm(email, password, username);
+    static new(email: string, password: User.Password, username: string, captchaToken: string): Result<RegistrationForm, ValidationError[]> {
+        let provisional = new RegistrationForm(email, password, username, captchaToken);
         let errs = validateSync(provisional);
         if (errs.length !== 0) {
             return err(errs);
@@ -91,8 +95,8 @@ class RegistrationForm implements User.CreationRequest {
         }
     }
 
-    static fromAny(obj: Partial<{email: string; password: string; username: string}>): Result<RegistrationForm, Http.BadRequest> {
-        if (!obj.email || !obj.password || !obj.username) {
+    static fromAny(obj: Partial<{email: string; password: string; username: string; captchaToken: string}>): Result<RegistrationForm, Http.BadRequest> {
+        if (!obj.email || !obj.password || !obj.username || !obj.captchaToken) {
             return err(new Http.BadRequest("Missing at least one field."));
         }
 
@@ -102,7 +106,7 @@ class RegistrationForm implements User.CreationRequest {
             return err(new Http.BadRequest(JSON.stringify(pass.error)));
         }
 
-        return RegistrationForm.new(obj.email, pass.value, obj.username)
+        return RegistrationForm.new(obj.email, pass.value, obj.username, obj.captchaToken)
             .mapErr((e) => new Http.BadRequest(JSON.stringify(e)));
     }
 
@@ -117,6 +121,22 @@ registrationRouter.route("/")
 
         let form = req.validated;
 
+        let tok = form.captchaToken;
+        let captchaResp = await verifyRecaptcha(tok, req.log);
+        if (captchaResp.isErr()) {
+            req.log?.error(captchaResp.error);
+            return next(new Http.BadRequest());
+        }
+
+        let resp = captchaResp._unsafeUnwrap();
+        if (resp.action != "register") {
+            return next(new Http.BadRequest());
+        }
+
+        if (resp.score < DEFAULT_THRESHOLD) {
+            return next(new Http.RateLimited());
+        }
+
         let conn = await getConn();
         let repo = conn.getRepository(UserEntity);
 
@@ -126,7 +146,6 @@ registrationRouter.route("/")
             timeCost: 1,
             parallelism: 1
         });
-
 
         try {
             await repo.insert({
