@@ -13,6 +13,7 @@ import {Link, useHistory} from "react-router-dom";
 import {AlertDisplay, AlertProvider} from "./AlertContext";
 import {cssTransition, ToastContainer} from "react-toastify";
 import {Register} from "./Register";
+import {Profile} from "./Profile";
 
 interface SessionLoader {
     isLoadingSession: boolean;
@@ -74,6 +75,10 @@ function App() {
                         <Route exact path={"/register"}>
                             <HimaHelmet title={"Register"}/>
                             <Register/>
+                        </Route>
+                        <Route exact path={"/profile"}>
+                            <HimaHelmet title={"Profile"}/>
+                            <Profile/>
                         </Route>
                         <Route path={"*"}>
                             <HimaHelmet title={"Not Found"}/>

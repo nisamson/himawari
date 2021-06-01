@@ -107,7 +107,7 @@ export class LoggedInUser implements User.Info {
     private constructor(created: Date, displayName: string, email: string, username: string) {
         this.created = created;
         this.displayName = displayName;
-        this.email = displayName;
+        this.email = email;
         this.username = username;
     }
 
