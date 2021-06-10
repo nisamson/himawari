@@ -5,6 +5,8 @@ import AsyncLock from "async-lock";
 import assert from "assert";
 import {InitUsers1621753068278} from "./model/migrations/1621753068278-InitUsers";
 import {DatabaseError} from "pg-protocol";
+import {ContestEntity, EntryEntity} from "./model/entities/contests";
+import {InitContests1623225915473} from "./model/migrations/1623225915473-InitContests";
 
 assert(process.env.DB_DOMAIN, "DB_DOMAIN must be set to the database domain.");
 assert(process.env.DB_USER, "DB_USER must be set to the database user.");
@@ -20,10 +22,9 @@ const options: PostgresConnectionOptions = {
     password: process.env.DB_PASS,
     connectTimeoutMS: 5000,
     type: "postgres",
-    entities: [UserEntity],
+    entities: [UserEntity, ContestEntity, EntryEntity],
     logging: ["warn"],
-    migrations: [InitUsers1621753068278],
-    migrationsRun: true
+    migrations: [InitUsers1621753068278, InitContests1623225915473],
 }
 
 const lock = new AsyncLock();

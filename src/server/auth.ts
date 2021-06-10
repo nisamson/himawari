@@ -128,7 +128,7 @@ registrationRouter.route("/")
             return next(new Http.BadRequest());
         }
 
-        let resp = captchaResp._unsafeUnwrap();
+        let resp = captchaResp.value;
         if (!resp.success) {
             return next(new Http.RateLimited());
         }

@@ -17,7 +17,8 @@ passport.use('jwt', new Strategy(
         secretOrKey: process.env.HASH_KEY,
         jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
         issuer: process.env.DOMAIN,
-        passReqToCallback: true
+        passReqToCallback: true,
+        algorithms: ["HS256"]
     },
     async (req: express.Request & Partial<WithLogger>, jwt_payload: any, done: passjwt.VerifiedCallback) => {
         let ref: User.Ref = {
