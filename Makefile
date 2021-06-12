@@ -5,12 +5,13 @@ include .env
 
 dev-run:
 	docker-compose up -d
-	yarn concurrently -c "blue,green,yellow" -n "tsc,himawari,client" "yarn dev:server:tsc" "yarn dev:server:run" "make himawari-frontend"
+	yarn concurrently -c "blue,green,yellow" -n "himawari,client" "make himawari-backend" "make himawari-frontend"
 
 himawari-frontend:
 	BROWSER=none PORT=${FRONTEND_PORT} yarn dev:client
 
 himawari-backend:
+	cd himawari/ && cargo watch -x run
 
 
 .PHONY: clean

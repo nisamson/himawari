@@ -1,7 +1,7 @@
 use tokio::sync::OnceCell;
 use crate::api;
 use once_cell::sync::Lazy;
-use sqlx::error::DatabaseError;
+use sqlx::error::{DatabaseError, BoxDynError};
 use crate::api::ResponseError;
 use rocket::http::Status;
 use std::borrow::Cow;
@@ -12,6 +12,9 @@ use sqlx::{Database, Postgres, Type};
 use sqlx::postgres::PgTypeInfo;
 use std::fmt;
 use std::fmt::Formatter;
+use sqlx::database::{HasValueRef, HasArguments};
+use sqlx::encode::IsNull;
+use std::option::Option::None;
 
 static MIGRATIONS: Migrator = sqlx::migrate!("./migrations");
 
@@ -31,7 +34,7 @@ pub async fn run_migrations() -> api::Result<()> {
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("SQL error: {0}")]
-    Internal(sqlx::Error),
+    Internal(#[source] sqlx::Error),
     #[error("Request violated unique constraint.")]
     Conflict,
     #[error("Not found.")]
@@ -80,8 +83,7 @@ impl ResponseError for Error {
     }
 }
 
-#[derive(shrinkwraprs::Shrinkwrap, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, sqlx::Type)]
-#[sqlx(type_name = "CITEXT")]
+#[derive(shrinkwraprs::Shrinkwrap, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct CiText(UniCase<String>);
 
 impl From<String> for CiText {
@@ -111,5 +113,44 @@ impl fmt::Display for CiText {
 impl HasLen for CiText {
     fn length(&self) -> u64 {
         self.0.len() as u64
+    }
+}
+
+impl sqlx::Type<Postgres> for CiText {
+    fn type_info() -> <Postgres as Database>::TypeInfo {
+        PgTypeInfo::with_name("citext")
+    }
+}
+
+impl<'r> sqlx::Decode<'r, Postgres> for CiText {
+    fn decode(value: <Postgres as HasValueRef<'r>>::ValueRef) -> Result<Self, BoxDynError> {
+        let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
+        Ok(s.into())
+    }
+}
+
+impl<'q> sqlx::Encode<'q, Postgres> for CiText {
+    fn encode(self, buf: &mut <Postgres as HasArguments<'q>>::ArgumentBuffer) -> IsNull where
+        Self: Sized, {
+        <String as sqlx::Encode<Postgres>>::encode(self.0.into_inner(), buf)
+    }
+
+    fn encode_by_ref(&self, buf: &mut <Postgres as HasArguments<'q>>::ArgumentBuffer) -> IsNull {
+        <&str as sqlx::Encode<Postgres>>::encode(self.0.as_str(), buf)
+    }
+
+    fn produces(&self) -> Option<<Postgres as Database>::TypeInfo> {
+        Some(Self::type_info())
+    }
+
+    fn size_hint(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl From<sqlx::Error> for api::Error {
+    fn from(s: sqlx::Error) -> Self {
+        let e: Error = s.into();
+        e.into()
     }
 }

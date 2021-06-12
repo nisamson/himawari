@@ -55,7 +55,7 @@ async fn main() {
         .merge(("port", port));
 
     rocket::custom(config)
-        .mount("/api", rocket::routes![routes::auth::register])
+        .mount("/api", rocket::routes![routes::auth::register, routes::auth::login])
         .launch()
         .await
         .unwrap();

@@ -80,7 +80,7 @@ impl Response {
     }
 }
 
-#[instrument(level = "debug")]
+#[instrument(level = "debug", fields())]
 pub async fn verify_captcha(token: String) -> api::Result<()> {
     debug!("verifying recaptcha");
     let request = Request::new(token);

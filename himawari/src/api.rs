@@ -71,7 +71,7 @@ impl ResponseError for ValidationErrors {
 }
 
 impl Error {
-    pub fn from_error(err: impl std::error::Error) -> Self {
+    pub fn from_error(err: impl std::fmt::Debug) -> Self {
         format!("{:?}", err).into()
     }
 }
@@ -88,6 +88,16 @@ impl<'r, 'o: 'r> Responder<'r, 'o> for Error {
         };
 
         status::Custom(self.err.status(), message).respond_to(request)
+    }
+}
+
+impl ResponseError for Status {
+    fn status(&self) -> Status {
+        self.clone()
+    }
+
+    fn message(&self) -> Cow<'static, str> {
+        self.reason_lossy().into()
     }
 }
 

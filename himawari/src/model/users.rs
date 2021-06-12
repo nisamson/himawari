@@ -2,26 +2,32 @@ use std::fmt::{Debug, Formatter};
 use std::fmt;
 
 use validator::{Validate, ValidationErrors};
-use std::convert::TryFrom;
+use std::convert::{TryFrom, TryInto};
 use crate::db::CiText;
-use validator::HasLen;
+use sqlx::types::chrono;
+use sqlx::types::chrono::Utc;
+use crate::{db, api};
+use sqlx::{Error, Postgres, Row};
+use sqlx::postgres::PgRow;
 
 #[derive(Deserialize, Validate, Clone)]
 #[serde(try_from = "String")]
 pub struct Password {
     #[validate(length(min = 4, max = 128))]
-    password: String
+    password: String,
 }
 
-#[derive(Deserialize, Validate, Clone, Debug, shrinkwraprs::Shrinkwrap)]
-#[serde(try_from = "String")]
+#[derive(Deserialize, Serialize, Validate, Clone, Debug, shrinkwraprs::Shrinkwrap)]
+#[serde(try_from = "String", into = "String")]
 pub struct Username {
     #[validate(length(min = 1, max = 128), non_control_character)]
     username: String,
 }
 
-#[derive(Deserialize, Clone, Debug, shrinkwraprs::Shrinkwrap)]
-#[serde(try_from = "String")]
+serde_plain::forward_display_to_serde!(Username);
+
+#[derive(Deserialize, Serialize, Clone, Debug, shrinkwraprs::Shrinkwrap)]
+#[serde(try_from = "String", into = "String")]
 pub struct Email {
     email: CiText,
 }
@@ -33,14 +39,16 @@ impl Validate for Email {
         #[derive(Validate)]
         struct Anon<'r> {
             #[validate(length(min = 1, max = 128), non_control_character, email)]
-            email: &'r str
-        };
+            email: &'r str,
+        }
 
         Anon {
             email: self.as_ref()
         }.validate()
     }
 }
+
+serde_plain::forward_display_to_serde!(Email);
 
 impl Password {
     pub fn new(s: String) -> Result<Self, ValidationErrors> {
@@ -51,7 +59,7 @@ impl Password {
     pub fn expose(&self) -> &str {
         &self.password
     }
-    pub fn expose_into(self) -> String {self.password}
+    pub fn expose_into(self) -> String { self.password }
 }
 
 
@@ -76,6 +84,24 @@ impl TryFrom<String> for Email {
     }
 }
 
+impl Into<CiText> for Email {
+    fn into(self) -> CiText {
+        self.email
+    }
+}
+
+impl Into<String> for Email {
+    fn into(self) -> String {
+        self.email.into()
+    }
+}
+
+impl Into<String> for Username {
+    fn into(self) -> String {
+        self.username.into()
+    }
+}
+
 impl TryFrom<String> for Username {
     type Error = ValidationErrors;
 
@@ -97,11 +123,8 @@ impl Debug for Password {
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct NewUserRequest {
-    #[serde(flatten)]
     pub username: Username,
-    #[serde(flatten)]
     pub password: Password,
-    #[serde(flatten)]
     pub email: Email,
     #[serde(rename = "captchaToken")]
     pub captcha_token: String,
@@ -109,8 +132,99 @@ pub struct NewUserRequest {
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct LoginRequest {
-    #[serde(flatten)]
     pub username: Username,
-    #[serde(flatten)]
     pub password: Password,
+}
+
+#[derive(Debug, Clone)]
+pub struct User {
+    id: i32,
+    username: Username,
+    display_name: Username,
+    email: Email,
+    email_validated: bool,
+    hash: String,
+    created: chrono::DateTime<Utc>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RawUser {
+    id: i32,
+    username: String,
+    display_name: String,
+    email: String,
+    email_validated: bool,
+    hash: String,
+    created: chrono::DateTime<Utc>,
+}
+
+impl TryFrom<RawUser> for User {
+    type Error = api::Error;
+    fn try_from(u: RawUser) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: u.id,
+            username: Username::try_from(u.username)?,
+            display_name: Username::try_from(u.display_name)?,
+            email: Email::try_from(u.email)?,
+            email_validated: u.email_validated,
+            hash: u.hash,
+            created: u.created,
+        })
+    }
+}
+
+impl User {
+    pub async fn load_full(user: &Username) -> api::Result<Self> {
+        Ok(sqlx::query_as!(RawUser,
+                    r#"SELECT id, username,
+                              display_name,
+                              email::TEXT as "email!", email_validated, hash, created
+                       FROM users
+                       WHERE username = $1"#,
+                    user.as_str()
+                ).fetch_one(db::pool()).await?.try_into()?)
+    }
+
+    pub fn id(&self) -> i32 {
+        self.id
+    }
+    pub fn username(&self) -> &Username {
+        &self.username
+    }
+    pub fn display_name(&self) -> &Username {
+        &self.display_name
+    }
+    pub fn email(&self) -> &Email {
+        &self.email
+    }
+    pub fn email_validated(&self) -> bool {
+        self.email_validated
+    }
+    pub fn hash(&self) -> &str {
+        &self.hash
+    }
+    pub fn created(&self) -> chrono::DateTime<Utc> {
+        self.created
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Info {
+    #[serde(rename = "sub")]
+    pub username: Username,
+    #[serde(rename = "displayName")]
+    pub display_name: Username,
+    pub email: Email,
+    pub created: chrono::DateTime<Utc>,
+}
+
+impl From<User> for Info {
+    fn from(u: User) -> Self {
+        Self {
+            username: u.username,
+            display_name: u.display_name,
+            email: u.email,
+            created: u.created,
+        }
+    }
 }
