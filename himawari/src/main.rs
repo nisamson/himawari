@@ -2,12 +2,16 @@
 #[macro_use] extern crate serde;
 #[macro_use] extern crate tracing;
 
-use rocket::Config;
+use rocket::{Config, Request, Data};
 use rocket::figment::Figment;
 use crate::db::run_migrations;
 use crate::api::need_env_var;
 use tracing_log::LogTracer;
 use tracing_subscriber::{EnvFilter, Layer};
+use rocket::fairing::{Fairing, Info};
+use rocket::fairing::Kind;
+use tracing::Instrument;
+use crate::logging::RequestIdManager;
 
 mod about;
 mod db;
@@ -16,6 +20,7 @@ mod model;
 mod api;
 mod recaptcha;
 mod http;
+mod logging;
 
 #[tokio::main]
 async fn main() {
@@ -54,8 +59,12 @@ async fn main() {
     let config = Figment::from(Config::default())
         .merge(("port", port));
 
-    rocket::custom(config)
-        .mount("/api", rocket::routes![routes::auth::register, routes::auth::login])
+    let r = rocket::custom(config)
+        .manage(RequestIdManager::new())
+        .mount("/api", rocket::routes![routes::auth::register, routes::auth::login]);
+    #[cfg(debug_assertions)]
+    let r = r.mount("/debug", rocket::routes![routes::debug::echo_token]);
+    r
         .launch()
         .await
         .unwrap();

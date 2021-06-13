@@ -210,7 +210,6 @@ impl User {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Info {
-    #[serde(rename = "sub")]
     pub username: Username,
     #[serde(rename = "displayName")]
     pub display_name: Username,

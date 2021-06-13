@@ -915,6 +915,7 @@ name = "himawari"
 version = "0.1.0"
 dependencies = [
  "argon2",
+ "async-trait",
  "better-panic",
  "chrono",
  "clap",

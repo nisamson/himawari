@@ -31,6 +31,7 @@ tracing-log = { version = "0.1" }
 chrono = { version = "0.4", features = ["serde"] }
 jwt-simple = "0.10"
 tracing-subscriber = { version = "0.2", features = ["parking_lot"] }
+async-trait = "0.1"
 
 [dependencies.sqlx]
 version = "0.5"

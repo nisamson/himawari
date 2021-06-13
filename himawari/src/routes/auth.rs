@@ -12,7 +12,7 @@ use crate::{
     api::need_env_var,
     model::{
         users::{NewUserRequest, Password, LoginRequest, User},
-        users
+        users,
     },
     api,
     recaptcha,
@@ -22,10 +22,23 @@ use secrecy::{SecretString, ExposeSecret};
 use rocket::http::Status;
 use jwt_simple::prelude::{HS256Key, Claims, Duration, MACLike, VerificationOptions};
 use std::convert::TryFrom;
+use rocket::request::{FromRequest, Outcome};
+use rocket::Request;
+use rocket::http::hyper::header::AUTHORIZATION;
+use crate::api::ResponseError;
+use std::borrow::Cow;
+use crate::model::users::Info;
+use crate::logging::RequestId;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Token {
     token: String,
+}
+
+impl AsRef<str> for Token {
+    fn as_ref(&self) -> &str {
+        self.token.as_ref()
+    }
 }
 
 static JWT_KEY: Lazy<HS256Key> = Lazy::new(|| {
@@ -33,33 +46,84 @@ static JWT_KEY: Lazy<HS256Key> = Lazy::new(|| {
 });
 
 impl TryFrom<users::Info> for Token {
+    type Error = api::Error;
+
     fn try_from(user: users::Info) -> Result<Self, Self::Error> {
         let claims = Claims::with_custom_claims(user, Duration::from_days(7));
         Ok(Token {
             token: JWT_KEY.authenticate(claims).map_err(api::Error::from_error)?
         })
     }
-
-    type Error = api::Error;
 }
 
-impl TryFrom<Token> for users::Info {
-    fn try_from(tok: Token) -> Result<Self, Self::Error> {
-        let mut opts = VerificationOptions::default();
-        opts.max_validity = Some(Duration::from_days(7));
+impl<'s> TryFrom<&'s str> for users::Info {
+    type Error = api::Error;
 
-        let claims = JWT_KEY.verify_token(tok.token.as_str(), Some(opts))
-            .map_err(|_| Status::Unauthorized)?;
+    fn try_from(s: &'s str) -> Result<Self, Self::Error> {
+        let opts = VerificationOptions {
+            max_validity: Some(Duration::from_days(7)),
+            ..Default::default()
+        };
+
+        let claims = JWT_KEY.verify_token(s, Some(opts))
+            .map_err(|e| {info!("JWT verification failed: {}", e); Status::Unauthorized})?;
         Ok(claims.custom)
     }
+}
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum TokenFailure {
+    Malformed,
+    Missing,
+}
+
+impl ResponseError for TokenFailure {
+    fn status(&self) -> Status {
+        Status::Unauthorized
+    }
+
+    fn message(&self) -> Cow<'static, str> {
+        match self {
+            TokenFailure::Malformed => {"Token was malformed"}
+            TokenFailure::Missing => {"No token found"}
+        }.into()
+    }
+}
+
+#[async_trait::async_trait]
+impl<'r> FromRequest<'r> for users::Info {
     type Error = api::Error;
+
+    async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
+        let req = request.guard::<RequestId>().await.unwrap();
+        let span = info_span!("parsing JWT", id=%req);
+        span.in_scope(|| {
+            let res = request.headers().get_one(AUTHORIZATION.as_str())
+                .ok_or_else(|| {info!("missing auth header"); TokenFailure::Missing.into()})
+                .and_then(|s|
+                    {
+                        if !s.starts_with("Bearer:") {
+                            info!("not a bearer header");
+                            return Err(TokenFailure::Malformed.into())
+                        }
+                        Ok(s[7..].trim())
+                    })
+                .and_then(users::Info::try_from);
+
+            match res {
+                Ok(inf) => {Outcome::Success(inf)}
+                Err(e) => {
+                    Outcome::Failure((e.as_inner().status(), e))
+                }
+            }
+        })
+    }
 }
 
 
 #[rocket::post("/register", format = "json", data = "<registration>")]
-#[instrument(level = "info", skip(registration), fields(user = %registration.username))]
-pub async fn register(registration: json::Json<NewUserRequest>) -> api::Result<Status> {
+#[instrument(level = "info", skip(registration), fields(user = % registration.username))]
+pub async fn register(id: RequestId, registration: json::Json<NewUserRequest>) -> api::Result<Status> {
     info!("registration attempt");
     let NewUserRequest { username, password, email, captcha_token } = registration.0;
     recaptcha::verify_captcha(captcha_token).await?;
@@ -78,10 +142,10 @@ pub async fn register(registration: json::Json<NewUserRequest>) -> api::Result<S
 }
 
 #[rocket::post("/login", format = "json", data = "<login>")]
-#[instrument(level = "info", skip(login),  fields(user = %login.username))]
-pub async fn login(login: json::Json<LoginRequest>) -> api::Result<json::Json<Token>> {
+#[instrument(level = "info", skip(login), fields(user = % login.username))]
+pub async fn login(id: RequestId, login: json::Json<LoginRequest>) -> api::Result<json::Json<Token>> {
     info!("login attempt");
-    let LoginRequest {password, username} = login.0;
+    let LoginRequest { password, username } = login.0;
     let user = User::load_full(&username).await?;
 
     let verified = verify_password(password, user.hash().to_string())
@@ -104,7 +168,7 @@ static ARGON_CONTEXT: Lazy<Argon2> = Lazy::new(|| {
         1,
         37,
         1,
-        argon2::Version::V0x13
+        argon2::Version::V0x13,
     ).expect("Failed to initialize argon hashing.")
 });
 
@@ -123,7 +187,8 @@ pub async fn hash_password(pass: Password) -> api::Result<String> {
 
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum Verification {
-    Failed, Passed
+    Failed,
+    Passed,
 }
 
 pub async fn verify_password(pass: Password, hash: String) -> api::Result<Verification> {
