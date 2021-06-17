@@ -1,25 +1,20 @@
 
 include .env
 
-.PHONY: dev-run built-backend himawari-frontend
+.PHONY: dev-run built-backend himawari-frontend himawari-backend
 
-dev-run: built-backend
+dev-run:
 	docker-compose up -d
-	yarn concurrently -c "blue,green,yellow" -n "tsc,himawari,client" "yarn dev:server:tsc" "yarn dev:server:run" "make himawari-frontend"
+	yarn concurrently -c "blue,green,yellow" -n "himawari,client" "make himawari-backend" "make himawari-frontend"
 
 himawari-frontend:
 	BROWSER=none PORT=${FRONTEND_PORT} yarn dev:client
 
-MODEL_SRC = $(shell find src/model/ -name '*.ts')
-SERVER_ONLY_SRC = $(shell find src/server/ -name '*.ts')
-SERVER_SRC += $(MODEL_SRC)
-SERVER_SRC += $(SERVER_ONLY_SRC)
-OUT_JS = $(patsubst src/%.ts,build_server/%.js,$(SERVER_SRC))
+himawari-backend:
+	cd himawari/ && cargo watch -x run
 
-built-backend:
-	yarn build:server
 
 .PHONY: clean
 
 clean:
-	rm -rf ./build/ ./build_server/
+	rm -rf ./build/

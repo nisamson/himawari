@@ -68,6 +68,14 @@ server {
         proxy_pass http://himawari_api;
     }
 
+    location /api/ {
+        proxy_pass http://himawari_api;
+    }
+
+    location /debug/ {
+        proxy_pass http://himawari_api;
+    }
+
 }
 
 

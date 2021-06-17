@@ -119,7 +119,7 @@ export class LoggedInUser implements User.Info {
         }
 
         let asInfo: any = parsed;
-        if (!asInfo.sub || !asInfo.email || !asInfo.created || !asInfo.displayName) {
+        if (!asInfo.username || !asInfo.email || !asInfo.created || !asInfo.displayName) {
             return err(new Error("Missing one or more token values."));
         }
 
@@ -127,7 +127,7 @@ export class LoggedInUser implements User.Info {
             new Date(asInfo.created as string),
             asInfo.displayName as string,
             asInfo.email as string,
-            asInfo.sub as string
+            asInfo.username as string
         ));
     }
 
