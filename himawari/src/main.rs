@@ -61,7 +61,13 @@ async fn main() {
 
     let r = rocket::custom(config)
         .manage(RequestIdManager::new())
-        .mount("/api", rocket::routes![routes::auth::register, routes::auth::login]);
+        .mount("/api",
+               rocket::routes![
+                   routes::auth::register,
+                   routes::auth::login,
+                   routes::contests::my_contests,
+                   routes::contests::new_contest
+               ]);
     #[cfg(debug_assertions)]
     let r = r.mount("/debug", rocket::routes![routes::debug::echo_token]);
     r

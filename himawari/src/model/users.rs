@@ -4,11 +4,17 @@ use std::fmt;
 use validator::{Validate, ValidationErrors};
 use std::convert::{TryFrom, TryInto};
 use crate::db::CiText;
-use sqlx::types::chrono;
-use sqlx::types::chrono::Utc;
 use crate::{db, api};
-use sqlx::{Error, Postgres, Row};
-use sqlx::postgres::PgRow;
+use sqlx::{
+    Error,
+    Postgres,
+    Row,
+    types::chrono::Utc,
+    types::chrono,
+    postgres::PgRow
+};
+use crate::model::contests::Contest;
+use super::ItemId;
 
 #[derive(Deserialize, Validate, Clone)]
 #[serde(try_from = "String")]
@@ -17,12 +23,10 @@ pub struct Password {
     password: String,
 }
 
-#[derive(Deserialize, Serialize, Validate, Clone, Debug, shrinkwraprs::Shrinkwrap)]
-#[serde(try_from = "String", into = "String")]
-pub struct Username {
-    #[validate(length(min = 1, max = 128), non_control_character)]
-    username: String,
-}
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, shrinkwraprs::Shrinkwrap, sqlx::Type)]
+#[sqlx(transparent)]
+#[serde(try_from = "String")]
+pub struct Username(String);
 
 serde_plain::forward_display_to_serde!(Username);
 
@@ -98,7 +102,7 @@ impl Into<String> for Email {
 
 impl Into<String> for Username {
     fn into(self) -> String {
-        self.username.into()
+        self.0.into()
     }
 }
 
@@ -106,11 +110,15 @@ impl TryFrom<String> for Username {
     type Error = ValidationErrors;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        let out = Self {
-            username: value
-        };
+        let out = Self(value);
 
-        out.validate()?;
+        #[derive(Validate)]
+        struct Anon<'r> {
+            #[validate(length(min = 1, max = 128), non_control_character)]
+            username: &'r str
+        }
+
+        Anon {username: out.0.as_str() }.validate()?;
         Ok(out)
     }
 }
@@ -138,7 +146,6 @@ pub struct LoginRequest {
 
 #[derive(Debug, Clone)]
 pub struct User {
-    id: i32,
     username: Username,
     display_name: Username,
     email: Email,
@@ -149,7 +156,6 @@ pub struct User {
 
 #[derive(Debug, Clone)]
 pub struct RawUser {
-    id: i32,
     username: String,
     display_name: String,
     email: String,
@@ -162,7 +168,6 @@ impl TryFrom<RawUser> for User {
     type Error = api::Error;
     fn try_from(u: RawUser) -> Result<Self, Self::Error> {
         Ok(Self {
-            id: u.id,
             username: Username::try_from(u.username)?,
             display_name: Username::try_from(u.display_name)?,
             email: Email::try_from(u.email)?,
@@ -176,17 +181,13 @@ impl TryFrom<RawUser> for User {
 impl User {
     pub async fn load_full(user: &Username) -> api::Result<Self> {
         Ok(sqlx::query_as!(RawUser,
-                    r#"SELECT id, username,
+                    r#"SELECT username,
                               display_name,
                               email::TEXT as "email!", email_validated, hash, created
                        FROM users
                        WHERE username = $1"#,
                     user.as_str()
                 ).fetch_one(db::pool()).await?.try_into()?)
-    }
-
-    pub fn id(&self) -> i32 {
-        self.id
     }
     pub fn username(&self) -> &Username {
         &self.username
@@ -208,13 +209,29 @@ impl User {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Info {
     pub username: Username,
     #[serde(rename = "displayName")]
     pub display_name: Username,
     pub email: Email,
     pub created: chrono::DateTime<Utc>,
+}
+
+impl fmt::Debug for Info {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Info")
+            .field("username", &self.username.as_str())
+            .finish()
+            // .finish_non_exhaustive() // switch to this when it's
+    }
+}
+
+impl fmt::Display for Info {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let s = serde_json::to_string(self).map_err(|_| fmt::Error::default())?;
+        f.write_str(&s)
+    }
 }
 
 impl From<User> for Info {
@@ -225,5 +242,19 @@ impl From<User> for Info {
             email: u.email,
             created: u.created,
         }
+    }
+}
+
+impl Info {
+    pub async fn contests(&self) -> api::Result<Vec<Contest>> {
+        sqlx::query_as!(
+            Contest,
+            r#"
+            SELECT id as "id!: ItemId", owner as "owner!: Username", name as "name!", created as "created!" FROM user_contests($1);
+            "#,
+            self.username.as_str()
+        ).fetch_all(db::pool())
+            .await
+            .map_err(api::Error::from)
     }
 }

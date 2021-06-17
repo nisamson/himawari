@@ -123,7 +123,7 @@ impl sqlx::Type<Postgres> for CiText {
 }
 
 impl<'r> sqlx::Decode<'r, Postgres> for CiText {
-    fn decode(value: <Postgres as HasValueRef<'r>>::ValueRef) -> Result<Self, BoxDynError> {
+    fn decode(value: <Postgres as HasValueRef<'r>>::ValueRef) -> std::result::Result<Self, BoxDynError> {
         let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
         Ok(s.into())
     }
@@ -154,3 +154,5 @@ impl From<sqlx::Error> for api::Error {
         e.into()
     }
 }
+
+pub type Result<T> = std::result::Result<T, Error>;

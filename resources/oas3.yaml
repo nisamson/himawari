@@ -81,6 +81,12 @@ paths:
       responses:
         '200':
           description: Returns info about contests pertinent to this user (either that they created or are judging).
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContestInfo'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
@@ -135,10 +141,15 @@ components:
         owner:
           type: string
           description: Username of the contest creator
+        created:
+          type: string
+          format: datetime
+          description: Creation time of the contest
       required:
         - id
         - name
         - owner
+        - created
     CreateEntry:
       type: object
 
