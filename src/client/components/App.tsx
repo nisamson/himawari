@@ -14,6 +14,7 @@ import {AlertDisplay, AlertProvider} from "./AlertContext";
 import {cssTransition, ToastContainer} from "react-toastify";
 import {Register} from "./Register";
 import {Profile} from "./Profile";
+import Logout from "./Logout";
 
 interface SessionLoader {
     isLoadingSession: boolean;
@@ -66,6 +67,12 @@ function App() {
                             {/* @ts-ignore */}
                             <AuthContext.Consumer>
                                 {state => <Login state={state}/>}
+                            </AuthContext.Consumer>
+                        </Route>
+                        <Route exact path="/logout">
+                            <HimaHelmet title={"Logout"}/>
+                            <AuthContext.Consumer>
+                                {state => <Logout state={state}/>}
                             </AuthContext.Consumer>
                         </Route>
                         <Route exact path="/privacy">

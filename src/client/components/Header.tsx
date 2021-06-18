@@ -8,19 +8,11 @@ import {toast} from "react-toastify";
 
 function UserNavMenu(props: {state: AuthContextState}) {
     let user = props.state.state!.info.displayName;
-    let history = useHistory();
-
-    function logout(_e: React.MouseEvent) {
-        props.state.dispatch({type: "logout"});
-        toast.info("You are now logged out.");
-        history.push("/");
-    }
-
     return <Nav.Item>
         <NavDropdown id={"user-nav-dropdown"} title={user}>
             <NavDropdown.Item as={NavLink} to={"/profile"} activeClassName={"active"}>Profile</NavDropdown.Item>
             <NavDropdown.Divider/>
-            <NavDropdown.Item href={"#"} onClick={logout}>Logout</NavDropdown.Item>
+            <NavDropdown.Item as={NavLink} to={"/logout"}>Logout</NavDropdown.Item>
         </NavDropdown>
     </Nav.Item>
 }

@@ -250,7 +250,7 @@ impl Info {
         sqlx::query_as!(
             Contest,
             r#"
-            SELECT id as "id!: ItemId", owner as "owner!: Username", name as "name!", created as "created!" FROM user_contests($1);
+            SELECT id as "id!: ItemId", owner as "owner!: Username", name as "name!", created as "created!" FROM user_contests($1) ORDER BY id;
             "#,
             self.username.as_str()
         ).fetch_all(db::pool())
