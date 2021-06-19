@@ -1,6 +1,6 @@
 import React from "react";
 import {Alert, Button, Collapse, Form, Jumbotron, OverlayTrigger, Popover} from "react-bootstrap";
-import {withRouter, RouteComponentProps} from "react-router-dom";
+import {withRouter, RouteComponentProps, Redirect} from "react-router-dom";
 import {BadLogin, LoginUser} from "../model/users";
 import ConditionalWrapper from "./ConditionalWrapper";
 import {AuthContextState, AuthState} from "./AuthContext";
@@ -15,6 +15,7 @@ interface LoginState {
     lastAlert: (show: boolean) => JSX.Element;
     showAlert: boolean;
     isAuthenticating: boolean;
+    redirectToReferrer: boolean;
 }
 
 function Overlay(children: JSX.Element) {
@@ -49,10 +50,17 @@ class Login extends React.Component<LoginProps & RouteComponentProps, LoginState
         lastAlert: () => <></>,
         showAlert: false,
         isAuthenticating: false,
+        redirectToReferrer: false
     }
 
     render() {
         let isAuth = this.state.isAuthenticating;
+
+        if (this.state.redirectToReferrer) {
+            let loc = this.props.history.location.state as {from: string} | null;
+            return <Redirect to={loc?.from || '/'}/>;
+        }
+
         return <div className={"Button text-center"}>
             <div>{this.state.lastAlert(this.state.showAlert)}</div>
             <Jumbotron>
@@ -165,7 +173,7 @@ class Login extends React.Component<LoginProps & RouteComponentProps, LoginState
             }
         } else {
             this.props.state.dispatch({type: "login", jwt: out.value.token})
-            this.props.history.push("/");
+            this.setState({redirectToReferrer: true});
         }
     }
 

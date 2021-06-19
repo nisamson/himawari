@@ -15,6 +15,11 @@ export interface AuthContextState {
     readonly dispatch: React.Dispatch<AuthAction>
 }
 
+export interface DefinitelyAuthContextState {
+    readonly state: AuthInfo,
+    readonly dispatch: React.Dispatch<AuthAction>
+}
+
 export interface AuthAction {
     readonly type: "login" | "logout";
     readonly jwt?: string

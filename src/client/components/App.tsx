@@ -15,6 +15,9 @@ import {cssTransition, ToastContainer} from "react-toastify";
 import {Register} from "./Register";
 import {Profile} from "./Profile";
 import Logout from "./Logout";
+import AuthRoute from "./AuthRoute";
+import {Contests} from "./Contests";
+import {QueryClient, QueryClientProvider} from "react-query";
 
 interface SessionLoader {
     isLoadingSession: boolean;
@@ -35,74 +38,90 @@ function HimaHelmet(props: {
     </Helmet>;
 }
 
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            refetchOnWindowFocus: false,
+        },
+    },
+});
+
 function App() {
 
     return (
         <AlertProvider>
-            <BrowserRouter>
-                <header className={"pb-3"}>
-                    <Header/>
-                </header>
-                <ToastContainer
-                    autoClose={5000}
-                    position={"top-right"}
-                    hideProgressBar={true}
-                    transition={cssTransition({
-                        enter: "animista-fade-in-right",
-                        exit: "animista-fade-out-right"
-                    })}
-                    pauseOnHover
-                    pauseOnFocusLoss
-                    closeOnClick
-                />
-                <div className={"container"}>
-                    <AlertDisplay/>
-                    <Switch>
-                        <Route exact path="/">
-                            <HimaHelmet/>
-                            <Home/>
-                        </Route>
-                        <Route exact path="/login">
-                            <HimaHelmet title={"Login"}/>
-                            {/* @ts-ignore */}
-                            <AuthContext.Consumer>
-                                {state => <Login state={state}/>}
-                            </AuthContext.Consumer>
-                        </Route>
-                        <Route exact path="/logout">
-                            <HimaHelmet title={"Logout"}/>
-                            <AuthContext.Consumer>
-                                {state => <Logout state={state}/>}
-                            </AuthContext.Consumer>
-                        </Route>
-                        <Route exact path="/privacy">
-                            <HimaHelmet title={"Privacy Policy"}/>
-                            <Privacy/>
-                        </Route>
-                        <Route exact path={"/register"}>
-                            <HimaHelmet title={"Register"}/>
-                            <Register/>
-                        </Route>
-                        <Route exact path={"/profile"}>
-                            <HimaHelmet title={"Profile"}/>
-                            <Profile/>
-                        </Route>
-                        <Route path={"*"}>
-                            <HimaHelmet title={"Not Found"}/>
-                            <NoMatch/>
-                        </Route>
+            <QueryClientProvider client={queryClient}>
+                <BrowserRouter>
+                    <header className={"pb-3"}>
+                        <Header/>
+                    </header>
+                    <ToastContainer
+                        autoClose={5000}
+                        position={"top-right"}
+                        hideProgressBar={true}
+                        transition={cssTransition({
+                            enter: "animista-fade-in-right",
+                            exit: "animista-fade-out-right"
+                        })}
+                        pauseOnHover
+                        pauseOnFocusLoss
+                        closeOnClick
+                    />
+                    <div className={"container"}>
+                        <AlertDisplay/>
+                        <Switch>
+                            <Route exact path="/">
+                                <HimaHelmet/>
+                                <Home/>
+                            </Route>
+                            <Route exact path="/login">
+                                <HimaHelmet title={"Login"}/>
+                                {/* @ts-ignore */}
+                                <AuthContext.Consumer>
+                                    {state => <Login state={state}/>}
+                                </AuthContext.Consumer>
+                            </Route>
+                            <Route exact path="/logout">
+                                <HimaHelmet title={"Logout"}/>
+                                <AuthContext.Consumer>
+                                    {state => <Logout state={state}/>}
+                                </AuthContext.Consumer>
+                            </Route>
+                            <Route exact path="/privacy">
+                                <HimaHelmet title={"Privacy Policy"}/>
+                                <Privacy/>
+                            </Route>
+                            <Route exact path={"/register"}>
+                                <HimaHelmet title={"Register"}/>
+                                <Register/>
+                            </Route>
+                            <Route exact path={"/profile"}>
+                                <HimaHelmet title={"Profile"}/>
+                                <Profile/>
+                            </Route>
+                            <AuthRoute exact path={"/contests"}>
+                                <HimaHelmet title={"My Contests"}/>
+                                <AuthContext.Consumer>
+                                    {state => <Contests state={state}/>}
+                                </AuthContext.Consumer>
+                            </AuthRoute>
+                            <Route path={"*"}>
+                                <HimaHelmet title={"Not Found"}/>
+                                <NoMatch/>
+                            </Route>
 
-                    </Switch>
-                    <hr/>
-                    <footer className={"text-center text-muted"}>
-                        <span>Copyright &copy; {copyrightYears()} Nick Samson</span>
-                        <br/>
-                        <span> <a className={"text-muted"}
-                                  href={"https://github.com/nisamson/himawari"}>Himawari on GitHub</a> | <Link
-                            to={"/privacy"} className={"text-muted"}>Privacy Policy</Link></span>
-                    </footer>
-                </div>
-            </BrowserRouter>
+                        </Switch>
+                        <hr/>
+                        <footer className={"text-center text-muted"}>
+                            <span>Copyright &copy; {copyrightYears()} Nick Samson</span>
+                            <br/>
+                            <span> <a className={"text-muted"}
+                                      href={"https://github.com/nisamson/himawari"}>Himawari on GitHub</a> | <Link
+                                to={"/privacy"} className={"text-muted"}>Privacy Policy</Link></span>
+                        </footer>
+                    </div>
+                </BrowserRouter>
+            </QueryClientProvider>
         </AlertProvider>
     );
 
