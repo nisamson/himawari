@@ -155,7 +155,6 @@ class Login extends React.Component<LoginProps & RouteComponentProps, LoginState
 
         event.preventDefault();
 
-
         await this.startLogin();
         let req = new LoginUser(this.state.username, User.Password.new(this.state.password)._unsafeUnwrap());
         await this.endLogin();

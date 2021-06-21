@@ -29,7 +29,14 @@ export namespace Contest {
         if (!res.ok) {
             return err(Http.Error.fromStatus(res.status));
         } else {
-            return ok(await res.json());
+            let json = await res.json();
+            let parsed = json.map((val: {id: number, name: string, owner: string, created: string}) => {
+                return {
+                    ...val,
+                    created: new Date(val.created)
+                }
+            })
+            return ok(parsed);
         }
     }
 
