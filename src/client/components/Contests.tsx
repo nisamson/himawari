@@ -7,6 +7,7 @@ import {toast} from "react-toastify";
 import {Redirect} from "react-router-dom";
 import LoadingSpinner from "./LoadingSpinner";
 import {Button, Container, Form, FormControl, FormGroup, Pagination, Row, Table} from "react-bootstrap";
+import {Paginator, usePaginator} from "./Paginator";
 
 export function Contests(props: { state: AuthContextState }) {
     const contests = useQuery<Contest.Info[], Http.Error>(["contests", props.state.state?.jwt], ({queryKey}) => Contest.getForUserOrThrow(queryKey[1] as string));
@@ -27,27 +28,9 @@ export function Contests(props: { state: AuthContextState }) {
 }
 
 function ListingTable(props: { asJudge: boolean, listings: Contest.Info[] }) {
-    let [page, setPage] = useState(0);
-    let [gotoForm, setGoto] = useState(`${page + 1}`);
-    let idx = page * 10 + 1;
-    let totalPages = props.listings.length / 10;
+    let paginator = usePaginator(props.listings.length, 10);
+    let idx = paginator.page * 10 + 1;
     let pageListings = props.listings.slice(idx - 1, idx - 1 + 10);
-    totalPages = Math.max(Math.ceil(totalPages), 1);
-    let lastPage = totalPages - 1;
-
-    function handlePageChange(e: FormEvent) {
-        e.preventDefault();
-        if (!gotoForm) {
-            toast.error("Please specify a page.");
-            return;
-        }
-        let val = parseInt(gotoForm);
-        if (isNaN(val) || val < 1 || val > totalPages) {
-            toast.error(`Invalid page: ${gotoForm}`);
-            return;
-        }
-        setPage(val - 1);
-    }
 
     return <div className={"ListingTable"}>
         <Table striped bordered hover>
@@ -72,25 +55,7 @@ function ListingTable(props: { asJudge: boolean, listings: Contest.Info[] }) {
             }
             </tbody>
         </Table>
-        <div className={"d-flex align-items-baseline justify-content-between text-nowrap"}>
-            <Pagination size={"sm"}>
-                <Pagination.First onClick={() => setPage(0)}/>
-                <Pagination.Prev disabled={page === 0} onClick={() => setPage(page - 1)}/>
-                {page > 1 && <Pagination.Item onClick={() => setPage(page - 2)}>{page - 1}</Pagination.Item>}
-                {page > 0 && <Pagination.Item onClick={() => setPage(page - 1)}>{page}</Pagination.Item>}
-                <Pagination.Item active>{page + 1} / {totalPages}</Pagination.Item>
-                {page < totalPages - 1 &&
-                <Pagination.Item onClick={() => setPage(page + 1)}>{page + 1}</Pagination.Item>}
-                {page < totalPages - 2 &&
-                <Pagination.Item onClick={() => setPage(page + 2)}>{page + 2}</Pagination.Item>}
-                <Pagination.Next disabled={page === lastPage} onClick={() => setPage(page + 1)}/>
-                <Pagination.Last onClick={() => setPage(lastPage)}/>
-            </Pagination>
-            <Form className={"d-inline-flex"} onSubmit={handlePageChange}>
-                <FormControl size={"sm"} type={"number"} placeholder={"Go To"} onChange={(e) => setGoto(e.target.value)} value={gotoForm} className={"mr-sm-2"}/>
-                <Button size={"sm"} type={"submit"} variant={"outline-primary"} className={"text-nowrap"}>Go To Page</Button>
-            </Form>
-        </div>
+        <Paginator onPageChange={paginator.setPage} paginator={paginator}/>
     </div>
 }
 
@@ -110,7 +75,7 @@ function ContestListings(props: { state: AuthContextState, listings: Contest.Inf
         <hr/>
         <Container className={"JudgeListings"}>
             <h2 className={"text-center text-md-left"}>
-                Contests I Judge
+                Judge Contests
             </h2>
             {judgeListings.length > 0 ? <ListingTable asJudge={true} listings={judgeListings}/> : <div className={"NoContest text-muted text-center"}>No contests yet!</div>}
 

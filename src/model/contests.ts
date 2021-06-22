@@ -1,8 +1,10 @@
-import {Length} from "class-validator";
+import {IsFQDN, Length, MaxLength, validateSync, ValidationError} from "class-validator";
 import {Http} from "./httpErrors";
 import {err, ok, Result} from "neverthrow";
-import {Validator} from "./validation";
+import {validateOrThrow, Validator} from "./validation";
 import {StatusCodes} from "http-status-codes";
+import {$NewEntry, Entry as FullEntry, EntryMeta, NewEntry} from "./gen";
+import {ValidationFailure} from "./errors";
 
 
 export namespace Contest {
@@ -65,6 +67,84 @@ export namespace Contest {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify(this)
+            });
+
+            if (!res.ok) {
+                return err(Http.Error.fromStatus(res.status));
+            } else {
+                return ok(await res.json());
+            }
+        }
+    }
+
+    export namespace Entry {
+        export type Meta = EntryMeta;
+        export type Info = FullEntry;
+        export class New implements NewEntry {
+            contestId: number;
+            @Length(1, $NewEntry.properties.creator.maxLength)
+            creator: string;
+            @Length(1, $NewEntry.properties.name.maxLength)
+            name: string;
+            @MaxLength($NewEntry.properties.url.maxLength)
+            url: string;
+            constructor(contestId: number, creator: string, name: string, url: string) {
+                this.contestId = contestId;
+                this.creator = creator;
+                this.name = name;
+
+                try {
+                    if (url) {
+                        new URL(url);
+                    }
+                } catch (e) {
+                    throw new ValidationFailure(e.message)
+                }
+
+                this.url = url;
+
+                validateOrThrow(this);
+            }
+
+            async create(tok: string): Promise<Result<Meta, Http.Error>> {
+                let res = await fetch(`/api/entry`, {
+                    method: "POST",
+                    headers: {
+                        "Authentication": `Bearer: ${tok}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(this)
+                });
+
+                if (!res.ok) {
+                    return err(Http.Error.fromStatus(res.status));
+                } else {
+                    return ok(await res.json());
+                }
+            }
+        }
+
+        export async function getEntry(tok: string, entryId: number): Promise<Result<Info, Http.Error>> {
+            let res = await fetch(`/api/entry/${entryId}`, {
+                method: "GET",
+                headers: {
+                    "Authentication": `Bearer: ${tok}`
+                }
+            });
+
+            if (!res.ok) {
+                return err(Http.Error.fromStatus(res.status));
+            } else {
+                return ok(await res.json());
+            }
+        }
+
+        export async function deleteEntry(tok: string, entryId: number): Promise<Result<void, Http.Error>> {
+            let res = await fetch(`/api/entry/${entryId}`, {
+                method: "DELETE",
+                headers: {
+                    "Authentication": `Bearer: ${tok}`
+                }
             });
 
             if (!res.ok) {

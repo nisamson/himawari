@@ -30,8 +30,26 @@ interface AppState extends SessionLoader {
 function HimaHelmet(props: {
     readonly title?: string;
     readonly description?: string;
+    readonly disableCSP?: boolean;
 }) {
     return <Helmet titleTemplate={"Himawari - %s"} defaultTitle={"Himawari Contest App"}>
+        {props.disableCSP || <meta httpEquiv="Content-Security-Policy"
+                                   content="
+            default-src 'self';
+            font-src https://cdnjs.cloudflare.com;
+            script-src 'self' https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css
+            https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css
+            https://www.google.com/recaptcha/
+            https://www.gstatic.com/recaptcha/;
+            img-src 'self' https: data:;
+            style-src 'self' https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css
+            https://cdn.jsdelivr.net/npm/react-toastify@7.0.4/dist/ReactToastify.min.css
+            https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css
+            https://www.google.com/recaptcha/
+            https://www.gstatic.com/recaptcha/;
+            frame-src 'self' https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/;
+        "
+        />}
         {props.title && <title>{props.title}</title>}
         <meta name={"description"}
               content={props.description ? props.description : "The Himawari contest app, a judging platform for running contests."}/>
@@ -99,6 +117,7 @@ function App() {
                                 <HimaHelmet title={"Profile"}/>
                                 <Profile/>
                             </Route>
+                            <Route exact path={"/docs"} render={() => window.location.href = "/docs.html"}/>
                             <AuthRoute exact path={"/contests"}>
                                 <HimaHelmet title={"My Contests"}/>
                                 <AuthContext.Consumer>
@@ -109,7 +128,6 @@ function App() {
                                 <HimaHelmet title={"Not Found"}/>
                                 <NoMatch/>
                             </Route>
-
                         </Switch>
                         <hr/>
                         <footer className={"text-center text-muted"}>
@@ -117,7 +135,8 @@ function App() {
                             <br/>
                             <span> <a className={"text-muted"}
                                       href={"https://github.com/nisamson/himawari"}>Himawari on GitHub</a> | <Link
-                                to={"/privacy"} className={"text-muted"}>Privacy Policy</Link></span>
+                                to={"/privacy"} className={"text-muted"}>Privacy Policy</Link> | <Link to={"/docs"}
+                                                                                                       className={"text-muted"}>Docs</Link></span>
                         </footer>
                     </div>
                 </BrowserRouter>
