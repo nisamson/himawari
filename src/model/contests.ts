@@ -42,6 +42,20 @@ export namespace Contest {
         }
     }
 
+    export async function deleteContest(tok: string, id: number): Promise<Result<void, Http.Error>> {
+        let res = await fetch(`/api/contest/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer: ${tok}`
+            }
+        });
+
+        if (!res.ok) {
+            return err(Http.Error.fromStatus(res.status));
+        }
+        return ok(undefined);
+    }
+
     export async function getForUserOrThrow(tok: string | undefined): Promise<Info[]> {
         let res = await getForUser(tok);
         if (res.isErr()) {
@@ -51,9 +65,10 @@ export namespace Contest {
         }
     }
 
-    class _New {
+    export class New {
         constructor(name: string) {
             this.name = name;
+            validateOrThrow(this);
         }
 
         @Length(1, 1024)
@@ -63,7 +78,7 @@ export namespace Contest {
             let res = await fetch("/api/contest", {
                 method: "POST",
                 headers: {
-                    "Authentication": `Bearer: ${tok}`,
+                    "Authorization": `Bearer: ${tok}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify(this)
@@ -110,7 +125,7 @@ export namespace Contest {
                 let res = await fetch(`/api/entry`, {
                     method: "POST",
                     headers: {
-                        "Authentication": `Bearer: ${tok}`,
+                        "Authorization": `Bearer: ${tok}`,
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify(this)
@@ -128,7 +143,7 @@ export namespace Contest {
             let res = await fetch(`/api/entry/${entryId}`, {
                 method: "GET",
                 headers: {
-                    "Authentication": `Bearer: ${tok}`
+                    "Authorization": `Bearer: ${tok}`
                 }
             });
 
@@ -143,7 +158,7 @@ export namespace Contest {
             let res = await fetch(`/api/entry/${entryId}`, {
                 method: "DELETE",
                 headers: {
-                    "Authentication": `Bearer: ${tok}`
+                    "Authorization": `Bearer: ${tok}`
                 }
             });
 
@@ -154,7 +169,5 @@ export namespace Contest {
             }
         }
     }
-
-    export const New = Validator(_New);
 
 }

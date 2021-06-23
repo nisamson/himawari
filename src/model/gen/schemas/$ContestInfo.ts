@@ -11,6 +11,7 @@ export const $ContestInfo = {
         name: {
             type: 'string',
             isRequired: true,
+            maxLength: 1024,
             minLength: 1,
         },
         owner: {

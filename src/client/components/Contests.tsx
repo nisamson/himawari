@@ -1,13 +1,16 @@
-import {useQuery} from "react-query";
-import {AuthContextState, AuthState} from "./AuthContext";
+import {useQuery, useQueryClient} from "react-query";
+import {AuthContext, AuthContextState, AuthState} from "./AuthContext";
 import {Contest} from "../../model/contests";
-import {Http} from "../../model";
+import {Http, ValidationFailure} from "../../model";
 import {FormEvent, useEffect, useState} from "react";
 import {toast} from "react-toastify";
 import {Redirect} from "react-router-dom";
 import LoadingSpinner from "./LoadingSpinner";
-import {Button, Container, Form, FormControl, FormGroup, Pagination, Row, Table} from "react-bootstrap";
+import {Button, Container, Form, FormControl, FormGroup, Modal, Pagination, Row, Table} from "react-bootstrap";
 import {Paginator, usePaginator} from "./Paginator";
+import {$ContestInfo} from "../../model/gen";
+import {useStateWithCallbackLazy} from "use-state-with-callback";
+import ContestDeletionModal from "./ContestDeletionModal";
 
 export function Contests(props: { state: AuthContextState }) {
     const contests = useQuery<Contest.Info[], Http.Error>(["contests", props.state.state?.jwt], ({queryKey}) => Contest.getForUserOrThrow(queryKey[1] as string));
@@ -15,7 +18,7 @@ export function Contests(props: { state: AuthContextState }) {
         if (contests.isError) {
             toast.error(contests.error.longMessage());
         }
-    }, [contests.isError])
+    }, [contests.isError, contests.error])
 
     if (!props.state.state) {
         return <Redirect to={"/login"}/>;
@@ -31,6 +34,21 @@ function ListingTable(props: { asJudge: boolean, listings: Contest.Info[] }) {
     let paginator = usePaginator(props.listings.length, 10);
     let idx = paginator.page * 10 + 1;
     let pageListings = props.listings.slice(idx - 1, idx - 1 + 10);
+    let [deletionCandidate, setDeleteCandidate] = useState(null as Contest.Info | null);
+    let [showModal, setShow] = useState(false);
+    let qc = useQueryClient();
+    const onClose = async (confirmed: boolean) => {
+        setDeleteCandidate(null);
+        setShow(false);
+
+        if (confirmed) {
+            await qc.invalidateQueries("contests");
+        }
+    };
+    const showDeletionModal = (info: Contest.Info) => {
+        setDeleteCandidate(info);
+        setShow(true);
+    };
 
     return <div className={"ListingTable"}>
         <Table striped bordered hover>
@@ -40,6 +58,7 @@ function ListingTable(props: { asJudge: boolean, listings: Contest.Info[] }) {
                 <th>Name</th>
                 {props.asJudge && <th>Creator</th>}
                 <th>Created</th>
+                <th>Manage</th>
             </tr>
             </thead>
             <tbody>
@@ -50,12 +69,30 @@ function ListingTable(props: { asJudge: boolean, listings: Contest.Info[] }) {
                         <td>{val.name}</td>
                         {props.asJudge && <td>{val.owner}</td>}
                         <td>{val.created.toLocaleDateString()}</td>
+                        <td className={"text-center"}><a href="#" aria-label={"delete contest"} className="fa fa-trash deletion-icon" aria-hidden="true" onClick={() => showDeletionModal(val)}/></td>
                     </tr>
                 })
             }
             </tbody>
         </Table>
         <Paginator onPageChange={paginator.setPage} paginator={paginator}/>
+        <AuthContext.Consumer>
+            {state =>
+                <ContestDeletionModal show={showModal}
+                                      contestInfo={deletionCandidate ? deletionCandidate : {
+                                          id: -1,
+                                          name: "",
+                                          owner: "",
+                                          created: new Date()
+                                      }}
+                                      onHide={() => setShow(false)}
+                                      jwt={state.state!.jwt}
+                                      onClose={onClose}
+
+                />
+            }
+        </AuthContext.Consumer>
+
     </div>
 }
 
@@ -64,21 +101,94 @@ function ContestListings(props: { state: AuthContextState, listings: Contest.Inf
     let listings = props.listings;
     let userListings = listings.filter((v) => v.owner === state.info.username);
     let judgeListings = listings.filter((v) => v.owner !== state.info.username);
-    return <div className={"Listings"}>
-        <h1>Contests</h1>
-        <Container className={"UserListings"}>
-            <h2 className={"text-center text-md-left"}>
-                My Contests
-            </h2>
-            {userListings.length > 0 ? <ListingTable asJudge={false} listings={userListings}/> : <div className={"NoContest text-muted text-center"}>No contests yet!</div>}
-        </Container>
-        <hr/>
-        <Container className={"JudgeListings"}>
-            <h2 className={"text-center text-md-left"}>
-                Judge Contests
-            </h2>
-            {judgeListings.length > 0 ? <ListingTable asJudge={true} listings={judgeListings}/> : <div className={"NoContest text-muted text-center"}>No contests yet!</div>}
+    const [showCreate, setShowCreate] = useState(false);
+    const [isSubmitting, setSubmitting] = useStateWithCallbackLazy(false);
+    const [newContestName, setContestName] = useState("");
+    let client = useQueryClient();
+    const isValid = newContestName.length >= 1 && newContestName.length <= $ContestInfo.properties.name.maxLength;
 
-        </Container>
-    </div>
+    const handleClose = () => setShowCreate(false);
+
+    function startSubmit() {
+        return new Promise((res) => {
+            setSubmitting(true, () => res(undefined))
+        });
+    }
+
+    const handleSubmit = async () => {
+        await startSubmit();
+        try {
+            let contest = new Contest.New(newContestName);
+            let res = await contest.create(state.jwt);
+            if (res.isErr()) {
+                toast.error(res.error.longMessage());
+                return;
+            }
+            toast.success(`Successfully created contest: ${res.value.name.substr(0, 128)}${res.value.name.length > 128 ? "..." : ""}`);
+            await client.invalidateQueries("contests");
+            setContestName("");
+            handleClose();
+        } catch (e) {
+            if (e instanceof ValidationFailure) {
+                toast.error(e);
+            }
+        } finally {
+            setSubmitting(false, () => undefined);
+        }
+    };
+
+    const handleFormSubmit = async (e: FormEvent) => {
+        e.preventDefault();
+        await handleSubmit();
+    }
+
+    return <>
+        <div className={"Listings"}>
+            <h1>Contests</h1>
+            <Container className={"UserListings"}>
+                <h2 className={"text-center text-md-left"}>
+                    My Contests
+                </h2>
+                {userListings.length > 0 ? <ListingTable asJudge={false} listings={userListings}/> :
+                    <div className={"NoContest text-muted text-center"}>No contests yet!</div>}
+                <Button variant={"primary"} onClick={() => setShowCreate(true)} block className={"mt-1"}>
+                    Create New Contest
+                </Button>
+            </Container>
+
+            <hr/>
+            <Container className={"JudgeListings"}>
+                <h2 className={"text-center text-md-left"}>
+                    Judge Contests
+                </h2>
+                {judgeListings.length > 0 ? <ListingTable asJudge={true} listings={judgeListings}/> :
+                    <div className={"NoContest text-muted text-center"}>No contests yet!</div>}
+            </Container>
+        </div>
+        <Modal backdrop={"static"} show={showCreate} size={"lg"} onHide={handleClose}
+               aria-labelledby="contest-creation-modal-title">
+            <Modal.Header closeButton>
+                <Modal.Title id={"contest-creation-modal-title"}>
+                    Create New Contest
+                </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form onSubmit={handleFormSubmit}>
+                    <Form.Group controlId={"name"}>
+                        <Form.Label>Contest Name</Form.Label>
+                        <Form.Control type={"text"} placeholder={"Enter name"} isValid={isValid} value={newContestName}
+                                      onChange={(e) => setContestName(e.target.value)}/>
+                        <Form.Text className={"text-muted"}>
+                            Must be between 1 and {$ContestInfo.properties.name.maxLength}.
+                        </Form.Text>
+                    </Form.Group>
+                </Form>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant={"success"} onClick={handleSubmit} disabled={isSubmitting || !isValid}>
+                    {isSubmitting ? <LoadingSpinner/> : "Submit"}
+                </Button>
+            </Modal.Footer>
+        </Modal>
+    </>
 }

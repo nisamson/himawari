@@ -41,13 +41,13 @@ export function Paginator(props: {paginator: PaginatorState, onPageChange: (page
         <Pagination size={"sm"}>
             <Pagination.First onClick={() => pag.setPage(0)}/>
             <Pagination.Prev disabled={pag.page === 0} onClick={() => pag.setPage(pag.page - 1)}/>
-            {pag.page > 1 && <Pagination.Item onClick={() => pag.setPage(pag.page - 2)}>{pag.page - 1}</Pagination.Item>}
-            {pag.page > 0 && <Pagination.Item onClick={() => pag.setPage(pag.page - 1)}>{pag.page}</Pagination.Item>}
+            {pag.page > 1 && <Pagination.Item onClick={() => pag.setPage(pag.page - 1)}>{pag.page - 1}</Pagination.Item>}
+            {pag.page > 0 && <Pagination.Item onClick={() => pag.setPage(pag.page)}>{pag.page}</Pagination.Item>}
             <Pagination.Item active>{pag.page + 1} / {pag.totalPages}</Pagination.Item>
             {pag.page < pag.totalPages - 1 &&
-            <Pagination.Item onClick={() => pag.setPage(pag.page + 1)}>{pag.page + 1}</Pagination.Item>}
+            <Pagination.Item onClick={() => pag.setPage(pag.page + 1)}>{pag.page + 2}</Pagination.Item>}
             {pag.page < pag.totalPages - 2 &&
-            <Pagination.Item onClick={() => pag.setPage(pag.page + 2)}>{pag.page + 2}</Pagination.Item>}
+            <Pagination.Item onClick={() => pag.setPage(pag.page + 2)}>{pag.page + 3}</Pagination.Item>}
             <Pagination.Next disabled={pag.page === pag.lastPage} onClick={() => pag.setPage(pag.page + 1)}/>
             <Pagination.Last onClick={() => pag.setPage(pag.lastPage)}/>
         </Pagination>
