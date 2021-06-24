@@ -24,7 +24,7 @@ export default function(props: Args & ModalProps) {
         }
     }
 
-    return <Modal {...other} aria-labelledby={"contest-deletion-modal-title"}>
+    return <Modal {...other} aria-labelledby={"contest-deletion-modal-title"} centered>
         <Modal.Header closeButton>
             <Modal.Title id={"contest-deletion-modal-title"}>
                 Confirm Contest Deletion

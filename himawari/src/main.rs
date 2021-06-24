@@ -21,6 +21,7 @@ mod api;
 mod recaptcha;
 mod http;
 mod logging;
+mod secure;
 
 #[tokio::main]
 async fn main() {
@@ -65,6 +66,8 @@ async fn main() {
                rocket::routes![
                    routes::auth::register,
                    routes::auth::login,
+                   routes::contests::get_contest,
+                   routes::contests::delete_contest,
                    routes::contests::my_contests,
                    routes::contests::new_contest
                ]);

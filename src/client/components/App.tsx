@@ -18,6 +18,7 @@ import Logout from "./Logout";
 import AuthRoute from "./AuthRoute";
 import {Contests} from "./Contests";
 import {QueryClient, QueryClientProvider} from "react-query";
+import {Container} from "react-bootstrap";
 
 interface SessionLoader {
     isLoadingSession: boolean;
@@ -85,7 +86,7 @@ function App() {
                         pauseOnFocusLoss
                         closeOnClick
                     />
-                    <div className={"container"}>
+                    <Container>
                         <AlertDisplay/>
                         <Switch>
                             <Route exact path="/">
@@ -138,7 +139,7 @@ function App() {
                                 to={"/privacy"} className={"text-muted"}>Privacy Policy</Link> | <Link to={"/docs"}
                                                                                                        className={"text-muted"}>Docs</Link></span>
                         </footer>
-                    </div>
+                    </Container>
                 </BrowserRouter>
             </QueryClientProvider>
         </AlertProvider>

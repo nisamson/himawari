@@ -38,11 +38,11 @@ export function Paginator(props: {paginator: PaginatorState, onPageChange: (page
         props.onPageChange(val - 1);
     }
     return <div className={"d-flex align-items-baseline justify-content-between text-nowrap"}>
-        <Pagination size={"sm"}>
+        <Pagination>
             <Pagination.First onClick={() => pag.setPage(0)}/>
             <Pagination.Prev disabled={pag.page === 0} onClick={() => pag.setPage(pag.page - 1)}/>
-            {pag.page > 1 && <Pagination.Item onClick={() => pag.setPage(pag.page - 1)}>{pag.page - 1}</Pagination.Item>}
-            {pag.page > 0 && <Pagination.Item onClick={() => pag.setPage(pag.page)}>{pag.page}</Pagination.Item>}
+            {pag.page > 1 && <Pagination.Item onClick={() => pag.setPage(pag.page - 2)}>{pag.page - 1}</Pagination.Item>}
+            {pag.page > 0 && <Pagination.Item onClick={() => pag.setPage(pag.page - 1)}>{pag.page}</Pagination.Item>}
             <Pagination.Item active>{pag.page + 1} / {pag.totalPages}</Pagination.Item>
             {pag.page < pag.totalPages - 1 &&
             <Pagination.Item onClick={() => pag.setPage(pag.page + 1)}>{pag.page + 2}</Pagination.Item>}
@@ -52,8 +52,8 @@ export function Paginator(props: {paginator: PaginatorState, onPageChange: (page
             <Pagination.Last onClick={() => pag.setPage(pag.lastPage)}/>
         </Pagination>
         <Form className={"d-inline-flex"} onSubmit={handlePageChange}>
-            <FormControl size={"sm"} type={"number"} placeholder={"Go To"} onChange={(e) => pag.setGoto(e.target.value)} value={pag.gotoForm} className={"mr-sm-2"}/>
-            <Button size={"sm"} type={"submit"} variant={"outline-primary"} className={"text-nowrap"}>Go To Page</Button>
+            <FormControl type={"number"} placeholder={"Go To"} onChange={(e) => pag.setGoto(e.target.value)} value={pag.gotoForm} className={"mr-sm-2"}/>
+            <Button type={"submit"} variant={"outline-primary"} className={"text-nowrap"}>Go To Page</Button>
         </Form>
     </div>
 }

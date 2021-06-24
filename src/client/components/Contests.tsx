@@ -6,11 +6,23 @@ import {FormEvent, useEffect, useState} from "react";
 import {toast} from "react-toastify";
 import {Redirect} from "react-router-dom";
 import LoadingSpinner from "./LoadingSpinner";
-import {Button, Container, Form, FormControl, FormGroup, Modal, Pagination, Row, Table} from "react-bootstrap";
+import {
+    Button, CardDeck,
+    CardGroup,
+    Container,
+    Form,
+    FormControl,
+    FormGroup,
+    Modal,
+    Pagination,
+    Row,
+    Table
+} from "react-bootstrap";
 import {Paginator, usePaginator} from "./Paginator";
 import {$ContestInfo} from "../../model/gen";
 import {useStateWithCallbackLazy} from "use-state-with-callback";
 import ContestDeletionModal from "./ContestDeletionModal";
+import ContestInfoCard from "./ContestInfoCard";
 
 export function Contests(props: { state: AuthContextState }) {
     const contests = useQuery<Contest.Info[], Http.Error>(["contests", props.state.state?.jwt], ({queryKey}) => Contest.getForUserOrThrow(queryKey[1] as string));
@@ -31,68 +43,18 @@ export function Contests(props: { state: AuthContextState }) {
 }
 
 function ListingTable(props: { asJudge: boolean, listings: Contest.Info[] }) {
-    let paginator = usePaginator(props.listings.length, 10);
-    let idx = paginator.page * 10 + 1;
-    let pageListings = props.listings.slice(idx - 1, idx - 1 + 10);
-    let [deletionCandidate, setDeleteCandidate] = useState(null as Contest.Info | null);
-    let [showModal, setShow] = useState(false);
-    let qc = useQueryClient();
-    const onClose = async (confirmed: boolean) => {
-        setDeleteCandidate(null);
-        setShow(false);
+    let paginator = usePaginator(props.listings.length, 5);
+    let idx = paginator.page * 5 + 1;
+    let pageListings = props.listings.slice(idx - 1, idx - 1 + 5);
 
-        if (confirmed) {
-            await qc.invalidateQueries("contests");
-        }
-    };
-    const showDeletionModal = (info: Contest.Info) => {
-        setDeleteCandidate(info);
-        setShow(true);
-    };
 
     return <div className={"ListingTable"}>
-        <Table striped bordered hover>
-            <thead>
-            <tr>
-                <th>#</th>
-                <th>Name</th>
-                {props.asJudge && <th>Creator</th>}
-                <th>Created</th>
-                <th>Manage</th>
-            </tr>
-            </thead>
-            <tbody>
-            {
-                pageListings.map((val, index) => {
-                    return <tr key={val.id}>
-                        <td>{idx + index}</td>
-                        <td>{val.name}</td>
-                        {props.asJudge && <td>{val.owner}</td>}
-                        <td>{val.created.toLocaleDateString()}</td>
-                        <td className={"text-center"}><a href="#" aria-label={"delete contest"} className="fa fa-trash deletion-icon" aria-hidden="true" onClick={() => showDeletionModal(val)}/></td>
-                    </tr>
-                })
-            }
-            </tbody>
-        </Table>
+        {
+            pageListings.map((val, index) => {
+                return <div className={"mb-2"}><ContestInfoCard info={val} asJudge={props.asJudge}/></div>
+            })
+        }
         <Paginator onPageChange={paginator.setPage} paginator={paginator}/>
-        <AuthContext.Consumer>
-            {state =>
-                <ContestDeletionModal show={showModal}
-                                      contestInfo={deletionCandidate ? deletionCandidate : {
-                                          id: -1,
-                                          name: "",
-                                          owner: "",
-                                          created: new Date()
-                                      }}
-                                      onHide={() => setShow(false)}
-                                      jwt={state.state!.jwt}
-                                      onClose={onClose}
-
-                />
-            }
-        </AuthContext.Consumer>
-
     </div>
 }
 
@@ -166,7 +128,7 @@ function ContestListings(props: { state: AuthContextState, listings: Contest.Inf
             </Container>
         </div>
         <Modal backdrop={"static"} show={showCreate} size={"lg"} onHide={handleClose}
-               aria-labelledby="contest-creation-modal-title">
+               aria-labelledby="contest-creation-modal-title" centered>
             <Modal.Header closeButton>
                 <Modal.Title id={"contest-creation-modal-title"}>
                     Create New Contest

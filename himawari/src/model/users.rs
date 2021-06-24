@@ -4,7 +4,7 @@ use std::fmt;
 use validator::{Validate, ValidationErrors};
 use std::convert::{TryFrom, TryInto};
 use crate::db::CiText;
-use crate::{db, api};
+use crate::{db, api, secure};
 use sqlx::{
     Error,
     Postgres,
@@ -15,6 +15,7 @@ use sqlx::{
 };
 use crate::model::contests::Contest;
 use super::ItemId;
+use crate::secure::{GuardedResource, Role};
 
 #[derive(Deserialize, Validate, Clone)]
 #[serde(try_from = "String")]
@@ -256,5 +257,23 @@ impl Info {
         ).fetch_all(db::pool())
             .await
             .map_err(api::Error::from)
+    }
+
+    /// Returns Ok if the user can access the resource.
+    pub async fn access_level<GR: GuardedResource>(&self, id: &GR::ResourceId) -> api::Result<secure::Role> {
+        GR::access_level(self, id).await
+    }
+}
+
+#[async_trait::async_trait]
+impl GuardedResource for Info {
+    type ResourceId = Username;
+
+    async fn access_level(user: &Info, rid: &Self::ResourceId) -> api::Result<secure::Role> {
+        if &user.username == rid {
+            return Ok(Role::Owner);
+        }
+
+        return Ok(Role::None);
     }
 }
